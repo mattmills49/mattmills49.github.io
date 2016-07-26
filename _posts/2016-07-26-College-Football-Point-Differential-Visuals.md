@@ -101,9 +101,8 @@ filter(plot_df, Team_Name == "Florida State") %>%
   ylab("Point Differential") +
   scale_x_continuous(name = "Game Time", breaks = seq(0, 60, by = 15))
 ```
-![test]({{ site.url }}/assets/unnames-chunk-5-1.png)
 
-<img src="mattmills49.github.io/img/fsu.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" style="display: block; margin: auto;" />
+<img src="https://raw.githubusercontent.com/mattmills49/mattmills49.github.io/master/img/fsu.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" style="display: block; margin: auto;" />
 
 ```r
 filter(plot_df, Conf_Name == "Atlantic Coast Conference") %>%
@@ -119,6 +118,6 @@ filter(plot_df, Conf_Name == "Atlantic Coast Conference") %>%
   scale_x_continuous(name = "Game Time", breaks = seq(0, 60, by = 15))
 ```
 
-<img src="mattmills49.github.io/img/acc.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" style="display: block; margin: auto;" />
+<img src="https://raw.githubusercontent.com/mattmills49/mattmills49.github.io/master/img/acc.png" title="plot of chunk unnamed-chunk-5" alt="plot of chunk unnamed-chunk-5" style="display: block; margin: auto;" />
 
 The Shiny App takes these same graphs and makes them interactive using the `ggiraph` package, which really is phenomenal. You can view that [here!](https://mattmills49.shinyapps.io/Point_Diff_Shiny/), the interactive conference plot may be a little slow. 
