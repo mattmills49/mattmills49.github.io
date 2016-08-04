@@ -79,6 +79,7 @@ organize_game_results <- function(df, ...){
 ```
 
 I'm going to do a bit of R Kung Fu but here is my basic approach:
+
 * ["Nest"](https://blog.rstudio.org/2016/02/02/tidyr-0-4-0/) the stacked team
 data so that the data is grouped by Season. Since each season's data is just
 stored as a list in a column of the data frame we can use `purrr`'s
