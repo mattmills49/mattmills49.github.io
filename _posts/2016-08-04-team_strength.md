@@ -20,7 +20,7 @@ this information for every other season I'm going to have to exclude it since
 the overall goal of this project is to predict the coming seasons results, so 
 we can't just ignore we don't have it for this year.
 
-Let's get started by reading in the data I've pulled from CFB Reference that
+Let's get started by reading in the [data I've pulled from CFB Reference](https://github.com/mattmills49/CFB_Analysis/blob/master/README.md) that
 includes the results of every FBS football game over the last 10 seasons.
 
 
