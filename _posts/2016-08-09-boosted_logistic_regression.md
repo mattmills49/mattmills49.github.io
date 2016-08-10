@@ -3,11 +3,12 @@ layout: post
 title:  Using Boosted Trees as Input in a Logistic Regression in R
 ---
 
-This 
-[paper](https://research.facebook.com/publications/practical-lessons-from-predicting-clicks-on-ads-at-facebook/)
+Recently I encountered an 
+[interesting paper](https://research.facebook.com/publications/practical-lessons-from-predicting-clicks-on-ads-at-facebook/) from the faceebook research team that 
 outlines a method for using decision trees (specifically boosted trees) to
-create transformed data to be used as input to a final logistic regression. 
-I'll let them explain the process for this:
+create transformed data to be used as input to a final logistic regression.
+I thought this was really cool and wanted to try and recreate the method in R.
+I'll let the paper authors explain the process for how they went about this.
 
 > We treat each individual tree as a categorical feature that takes as value the index of the leaf an instance ends up falling in. We use 1-of-K coding of this type of features. For example, consider the boosted tree model in Figure 1 with 2 subtrees, where the first subtree has 3 leafs and the second 2 leafs. If an instance ends up in leaf 2 in the first subtree and leaf 1 in second subtree, the overall input to the linear classifier will be the binary vector [0, 1, 0, 1, 0], where the first 3 entries correspond to the leaves of the first subtree and last 2 to those of the second subtree.
 
@@ -22,7 +23,7 @@ models but I have not heard of this exact way to transform raw data to use as
 input to a different model but if there has been other research on this topic
 please feel free to share, I'd love to read more about it.
 
-Anyway I thought this was cool enough to try and recreate in R. Their paper 
+Their paper 
 shows that this method was more accurate than either the Gradient Boosting 
 Machine (GBM) or the Logistic Regression alone but they didn't go into any 
 detail on how they traversed the tree so I'll try to focus on that since it 
