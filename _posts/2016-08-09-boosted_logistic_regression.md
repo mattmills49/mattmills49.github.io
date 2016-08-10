@@ -33,7 +33,7 @@ as my test set for no other reason than it has many samples and many
 different features. It's actually a little *too* big, the steps in this
 script do take a while so if you want to recreate the results you've been
 warned. I'll be doing some small data cleansing which you can see in the
-source code for this post but I won't be showing it here to save space. The
+[source code](https://github.com/mattmills49/mattmills49.github.io/blob/master/raw_scripts/boosted%20regression/gbm_peel.R) for this post but I won't be showing it here to save space. The
 dataset is a mix of categorical and numeric values so this should be a good
 use case for using the trees to find relationships between the underlying
 variables and the loan status. I assume, and hope to test, if the data was
@@ -357,4 +357,5 @@ results over the GBM alone by MSE, AUC, and the calibration of the model.
 
 This was a fun exercise for me that allowed me to work out my R muscles and
 learn a new modeling strategy. I hope you enjoyed it too and if you have any
-questions or comments please leave a comment or reach out on twitter. 
+questions or comments please leave a comment or reach out on twitter. As always
+you can view the source code for this post [on github](https://github.com/mattmills49/mattmills49.github.io/blob/master/raw_scripts/boosted%20regression/gbm_peel.R)
