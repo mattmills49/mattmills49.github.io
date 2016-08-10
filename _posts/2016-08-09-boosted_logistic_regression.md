@@ -4,7 +4,7 @@ title:  Using Boosted Trees as Input in a Logistic Regression in R
 ---
 
 Recently I encountered an 
-[interesting paper](https://research.facebook.com/publications/practical-lessons-from-predicting-clicks-on-ads-at-facebook/) from the faceebook research team that 
+[interesting paper](https://research.facebook.com/publications/practical-lessons-from-predicting-clicks-on-ads-at-facebook/) from the facebook research team that 
 outlines a method for using decision trees (specifically boosted trees) to
 create transformed data to be used as input to a final logistic regression.
 I thought this was really cool and wanted to try and recreate the method in R.
@@ -355,6 +355,6 @@ h2o_preds <- as.data.frame(h2o_preds)
 And there it is, using a full Logistic Regression Model we get improved
 results over the GBM alone by MSE, AUC, and the calibration of the model. 
 
-This was a fun exercise for me that allowed me to workout my R muscles and
+This was a fun exercise for me that allowed me to work out my R muscles and
 learn a new modeling strategy. I hope you enjoyed it too and if you have any
 questions or comments please leave a comment or reach out on twitter. 
