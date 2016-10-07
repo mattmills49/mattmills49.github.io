@@ -1,4 +1,3 @@
-#' # Data Science Cheat Sheet
 #'
 #' ### Data Validation / Testing
 #' 
@@ -6,13 +5,13 @@
 #' frame and another package from Hadley that is more of a replacement for
 #' `stopifnot`.
 #'
-#' [**assertr**](https://github.com/ropenscilabs/assertr)
+#' [**assertr**](https://github.com/ropenscilabs/assertr) ((vignette)[https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html]
 #' 
 #' > The assertr package supplies a suite of functions designed to verify assumptions about data early in an analysis pipeline so that data errors are spotted early and can be addressed quickly.
 #' 
-#' Vignette: https://cran.r-project.org/web/packages/assertr/vignettes/assertr.html
 #' 
 #+ cache = T
+library(magrittr)
 library(assertr)
 mtcars %>%
   verify(nrow(.) > 10) %>%
@@ -25,12 +24,10 @@ mtcars %>%
   summarise(avg.mpg = mean(mpg))
 
 #'
-#' [**validate**](https://github.com/data-cleaning/validate)
+#' [**validate**](https://github.com/data-cleaning/validate) ((vignette)[https://cran.r-project.org/web/packages/validate/vignettes/intro.html])
 #' 
 #' > The validate R-package makes it super-easy to check whether data lives up to expectations you have based on domain knowledge. It works by allowing you to define data validation rules independent of the code or data set.
-#' 
-#' Vignette: https://cran.r-project.org/web/packages/validate/vignettes/intro.html
-#' 
+#'  
 #+ cache = T
 library(validate)
 data(women)
