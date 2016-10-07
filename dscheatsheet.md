@@ -1,3 +1,8 @@
+---
+layout: page
+title: Keeping Up
+subtitle: My list of research papers and blog posts on the most recent Data Science Best Practices
+---
 
 ### Data Validation / Testing
 
