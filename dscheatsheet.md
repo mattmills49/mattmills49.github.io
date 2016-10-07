@@ -18,27 +18,7 @@ frame and another package from Hadley that is more of a replacement for
 
 
 ```r
-library(dplyr)
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
+suppressPackageStartupMessages(library(dplyr))
 library(assertr)
 
 mtcars %>%
@@ -73,12 +53,18 @@ mtcars %>%
 library(validate)
 data(women)
 cf <- check_that(women, height > 0, weight > 0, height/weight > 0.5)
-summary(cf)
+cf
 ```
 
 ```
-##     Length      Class       Mode 
-##          3 validation         S4
+## Object of class 'validation'
+## Call:
+##     check_that(women, height > 0, weight > 0, height/weight > 0.5)
+## 
+## Confrontations: 3
+## With fails    : 1
+## Warnings      : 0
+## Errors        : 0
 ```
 
 ```r
@@ -139,5 +125,6 @@ assert_that(is.numeric(x))
 ```
 ## [1] TRUE
 ```
+
 
 

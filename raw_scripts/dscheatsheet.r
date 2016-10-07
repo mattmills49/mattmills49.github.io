@@ -11,7 +11,7 @@
 #' 
 #' 
 #+ cache = T
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 library(assertr)
 
 mtcars %>%
@@ -34,7 +34,7 @@ mtcars %>%
 library(validate)
 data(women)
 cf <- check_that(women, height > 0, weight > 0, height/weight > 0.5)
-summary(cf)
+cf
 
 v <- validator(height > 0, weight > 0, height/weight > 0)
 confront(women, v)
@@ -57,5 +57,10 @@ assert_that(length(x) == 5)
 
 assert_that(is.numeric(x))
 
-#+ echo = F
+#+ echo = F, eval = F
 #ezknitr::ezspin(file = paste0(getwd(), "/raw_scripts/dscheatsheet.r"), out_dir = getwd(), keep_html = F, move_intermediate_file = T)
+# ---
+#  layout: page
+#title: Data Science Cheat Sheet
+#subtitle: R Packages for the non-sexy parts of Data Science
+#---
