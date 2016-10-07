@@ -57,3 +57,5 @@ assert_that(is.character(x))
 assert_that(length(x) == 5)
 
 assert_that(is.numeric(x))
+
+#ezknitr::ezspin(file = paste0(getwd(), "/raw_scripts/dscheatsheet.r"), out_dir = getwd(), keep_html = F, move_intermediate_file = T)

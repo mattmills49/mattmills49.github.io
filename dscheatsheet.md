@@ -1,3 +1,9 @@
+---
+layout: page
+title: Data Science Cheat Sheet
+subtitle: R Packages for the not-mainstream Data Science Tasks
+---
+
 # Data Science Cheat Sheet
 
 ### Data Validation / Testing
