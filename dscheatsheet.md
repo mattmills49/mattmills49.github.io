@@ -126,5 +126,10 @@ assert_that(is.numeric(x))
 ## [1] TRUE
 ```
 
+### Textbooks
 
+Data Analysis Using Regression and Multilevel/Hierarchical Models
+The Elements of Statistical Learning
+[Advanced Data Analysis from an Elementary Point of View](https://www.stat.cmu.edu/~cshalizi/ADAfaEPoV/ADAfaEPoV.pdf)
+[Regression Modeling Strategies](http://www.springer.com/gb/book/9781441929181)
 
