@@ -125,6 +125,10 @@ assert_that(is.numeric(x))
 ```
 ## [1] TRUE
 ```
+### Data Science Workflow
+
+* [Git and Github](http://r-pkgs.had.co.nz/git.html)
+  + This tutorials toes the line perfectly between comprehensive github use and brevity to quickly find what you want
 
 ### Textbooks
 
