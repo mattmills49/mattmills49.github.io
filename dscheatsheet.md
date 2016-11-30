@@ -130,6 +130,6 @@ assert_that(is.numeric(x))
 
 * Data Analysis Using Regression and Multilevel/Hierarchical Models
 * The Elements of Statistical Learning
-* [Advanced Data Analysis from an Elementary Point of View](https://www.stat.cmu.edu/~cshalizi/ADAfaEPoV/ADAfaEPoV.pdf)
+* [Advanced Data Analysis from an Elementary Point of View](http://www.stat.cmu.edu/~cshalizi/ADAfaEPoV/)
 * [Regression Modeling Strategies](http://www.springer.com/gb/book/9781441929181)
 
