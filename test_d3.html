@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>D3: A true bar chart with SVG rects</title>
+      <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+		<style type="text/css">
+			
+			.axis path,
+			.axis line {
+    			fill: none;
+    			stroke: black;
+    			shape-rendering: crispEdges;
+    			}
+
+			.axis text {
+    			font-family: sans-serif;
+    			font-size: 11px;
+    			}		
+    			
+    		#tooltip {
+        		position: absolute;
+        		width: auto;
+        		height: auto;
+        		padding: 10px;
+        		background-color: white;
+        		-webkit-border-radius: 10px;
+        		-moz-border-radius: 10px;
+        		border-radius: 10px;
+        		-webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        		-moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        		box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        		pointer-events: none;
+        	}
+
+			#tooltip.hidden {
+        		display: none;
+			}
+
+			#tooltip p {
+        		margin: 0;
+        		font-family: sans-serif;
+        		font-size: 12px;
+        		line-height: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="tooltip" class="hidden">
+			<p><span id="value">100</span></p>
+		</div>
+		<script type="text/javascript">
+
+			//Width and height
+			var w = 300;
+			var h = 300;
+			var padding = 20;
+			
+			var dataset = [{"QB":"D.J. Shockley","PASS_EPA":2.8,"RUN_EPA":4.8,"ACT_PLAYS":32,"Team":"UGA","Opponent":"BSU"},{"QB":"Brad Smith","PASS_EPA":9.7,"RUN_EPA":3.6,"ACT_PLAYS":56,"Team":"MIZ","Opponent":"ARST"},{"QB":"Brady Quinn","PASS_EPA":5.8,"RUN_EPA":1.5,"ACT_PLAYS":37,"Team":"ND","Opponent":"PITT"},{"QB":"Vince Young","PASS_EPA":4.2,"RUN_EPA":1.4,"ACT_PLAYS":26,"Team":"TEX","Opponent":"ULL"},{"QB":"Matt Bonislawski","PASS_EPA":3.5,"RUN_EPA":3.6,"ACT_PLAYS":32,"Team":"CONN","Opponent":"BUFF"}];
+			
+			var x_scale = d3.scale.linear()
+				.domain([d3.min(dataset, function(d) { 
+					return d["PASS_EPA"]; 
+				}), d3.max(dataset, function(d) { 
+					return d["PASS_EPA"]; 
+				})])
+				.range([2 * padding, w - padding]);
+				
+			var y_scale = d3.scale.linear()
+				.domain([d3.min(dataset, function(d) { 
+					return d["RUN_EPA"]; 
+				}), d3.max(dataset, function(d) { 
+					return d["RUN_EPA"]; 
+				})])
+				.range([h - 2 * padding, padding]);
+				
+			var xAxis = d3.svg.axis()
+                  .scale(x_scale)
+                  .orient("bottom");
+            
+            var yAxis = d3.svg.axis()
+                  .scale(y_scale)
+                  .orient("left");
+			
+			//Create SVG element
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", w)
+						.attr("height", h);
+
+			svg.selectAll("circle")
+			    .data(dataset)
+			    .enter()
+			    .append("circle")
+			    .attr("cx", function(d) {
+			   		return x_scale(d["PASS_EPA"]);
+			    })
+			    .attr("cy", function(d) {
+			   		return y_scale(d["RUN_EPA"]);
+			    })
+			    .attr("r", function(d) {
+			   		return Math.sqrt(d["ACT_PLAYS"])
+			    })
+			    .on("mouseover", function(d) {
+        			d3.select(this)
+          				.attr("fill", "purple");
+          			
+					//Get this bar's x/y values, then augment for the tooltip
+					var xPosition = d3.select(this).attr("cx");
+					var yPosition = d3.select(this).attr("cy");
+				
+					//Create the tooltip label
+					//Update the tooltip position and value
+					d3.select("#tooltip")
+					  .style("left", xPosition + 20 + "px")
+					  .style("top", yPosition - 20 + "px")
+					  .select("#value")
+					  .text(d["QB"]);
+
+					//Show the tooltip
+					d3.select("#tooltip").classed("hidden", false);
+          		})
+          		.on("mouseout", function() {
+          			d3.select(this)
+          				.attr("fill", "black");
+          			
+          			d3.select("#tooltip").classed("hidden", true);
+          		});
+			   	
+			svg.append("g")
+				.attr("class", "axis")
+				.attr("transform", "translate(0," + (h - padding) + ")")
+				.call(xAxis);
+				
+			svg.append("g")
+    			.attr("class", "axis")
+    			.attr("transform", "translate(" + 1.5 * padding + ",0)")
+    			.call(yAxis);
+			
+		</script>
+	</body>
+</html>
