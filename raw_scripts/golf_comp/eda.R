@@ -215,4 +215,5 @@ club_grid %>%
   filter(left_to_pin_before < p_upper, left_to_pin_before > p_lower) %>%
   ggplot(aes(x = left_to_pin_before / 36, y = predicted_value, color = club_factor)) +
   geom_point() +
-  facet_wrap(~lie_before_factor, nrow = 3, scales = "free")
+  facet_wrap(~lie_before_factor, nrow = 3)
+
