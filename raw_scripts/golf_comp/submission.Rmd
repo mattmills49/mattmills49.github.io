@@ -1,7 +1,8 @@
 ---
 title: "Club Recommender for David Horsey"
 author: "Matt Mills"
-output: pdf_document
+output:
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -10,12 +11,12 @@ knitr::opts_chunk$set(dpi = 200, fig.width = 6, fig.height = 4)
 
 # Introduction
 
-```{r, echo = F}
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(tidyr)
-library(mgcv)
+```{r, echo = F, warning = F, message = F}
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(mgcv))
 
 options(dplyr.width = Inf)
 shots <- read_csv(file = "~/Documents/golf/hackathon-data-horsey.csv", col_types = cols(
@@ -124,7 +125,7 @@ ordered_predictions %>%
   theme_minimal() +
   scale_y_continuous(labels = function(x) paste0(x * 100, "%")) +
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "bold"))
+        strip.text = element_text(face = "bold")) +
   ggtitle("Probability of Finishing Hole in Certain Number of Strokes", subtitle = "By Condition of the Current Lie") +
   xlab("Distance to Pin (Yards)") +
   ylab("Probability of Finishin Hole")
@@ -135,6 +136,9 @@ For example, this model estimates a putt from 5 yards out on the Green has aroun
 The probability distributions for the underlying remaining strokes on the hole are used to get an estimated number of shots remaining. Here is an example of the results of this model from the DP World Tour Championship in Dubai on the Par-5 18th hole in the 2nd round:
 
 ```{r, echo = F}
+predicted_shots_ordinal <- predict.gam(ordered_model, newdata = shots, type = "response")
+shots$predicted_shots_ordinal <- predicted_shots_ordinal %*% matrix(cats, ncol = 1) %>% drop %>% unname
+
 shots %>%
   select(name, round_no, hole_no, shot_no, left_to_pin_before, lie_before, predicted_shots_ordinal) %>% 
   filter(round_no == 2, hole_no == 18, name == "DP World Tour Championship, Dubai") %>% 
@@ -222,7 +226,7 @@ club_gam <- gam(shot_value ~ s(left_to_pin_before, by = club_factor) + s(left_to
 
 Now that our model is built we can visualize the impact of club choice by different lies and distances:
 
-```{r, echo = F}
+```{r, echo = F, fig.height=5}
 club_grid <- shot_value %>%
   expand(nesting(left_to_pin_before, predicted_shots_ordinal), club_factor = unique(club_factor), lie_before_factor = factor(unique(lie_before)))
 
@@ -239,7 +243,8 @@ club_grid %>%
   geom_point() +
   facet_wrap(~lie_before_factor, nrow = 3, scales = "free_y") +
   theme_minimal() +
-  theme(strip.text = element_text(face = "bold"))
+  theme(strip.text = element_text(face = "bold"),
+        legend.position = "top") +
   xlab("Distance to Pin (Yards)") +
   ylab("Expected Shot Value") +
   ggtitle("Model Estimates for a Shot's Value",
