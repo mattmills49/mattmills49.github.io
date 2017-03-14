@@ -3,6 +3,7 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 library(mgcv)
+library(stringr)
 
 options(dplyr.width = Inf)
 shots <- read_csv(file = "~/Documents/golf/hackathon-data-horsey.csv", col_types = cols(
@@ -70,15 +71,15 @@ ggplot(aes(x = left_to_pin_before / 36, y = shots_remaining), data = shots) +
   geom_jitter(aes(color = factor(shots_remaining)), height = .3, width = 0) +
   scale_color_discrete(guide = F)
 
-ggplot(aes(x = par, y = shots_remaining), data = shots_with_scores) +
+ggplot(aes(x = par, y = shots_remaining), data = shots) +
   geom_jitter(aes(color = factor(shots_remaining)), height = .3, width = .3) +
   scale_color_discrete(guide = F)
 
-ggplot(aes(x = yards, y = shots_remaining), data = shots_with_scores) +
+ggplot(aes(x = yards, y = shots_remaining), data = shots) +
   geom_jitter(aes(color = factor(shots_remaining)), height = .3, width = 0) +
   scale_color_discrete(guide = F)
 
-ggplot(aes(x = lie_before, y = shots_remaining), data = shots_with_scores) +
+ggplot(aes(x = lie_before, y = shots_remaining), data = shots) +
   geom_jitter(aes(color = factor(shots_remaining)), height = .3) +
   scale_color_discrete(guide = F)
 
@@ -214,6 +215,72 @@ club_grid %>%
   left_join(club_range, by = c("club_factor")) %>%
   filter(left_to_pin_before < p_upper, left_to_pin_before > p_lower) %>%
   ggplot(aes(x = left_to_pin_before / 36, y = predicted_value, color = club_factor)) +
+  geom_point() +
+  facet_wrap(~lie_before_factor, nrow = 3)
+
+club_lp <- predict(club_gam, type = "lpmatrix", newdata = club_grid)
+club_coefs <- coef(club_gam)
+
+# I want to isolate the effect of each club in terms of strokes gained. 
+# So, for each club and each lie I want to visualize their impact. So I'll
+# need to find the value for both and then take the difference. 
+
+stroke_values <- function(gam_model, .df, ...){
+  variables <- as.character(substitute(list(...)))[-1]
+  df_lp <- predict(gam_model, newdata = .df, type = "lpmatrix")
+  model_coefs <- coef(gam_model)
+  
+  variable_levels <- lapply(variables, function(x, mc = model_coefs){
+    cleaned_names <- mc %>%
+      names %>%
+      str_replace_all(fixed("s(left_to_pin_before):"), "")
+    var_values <- cleaned_names %>% str_detect(x)
+    cleaned_values <- cleaned_names[var_values] %>%
+      str_replace_all(x, "") %>%
+      str_extract_all("[a-zA-Z ]+", simplify = T) %>%
+      drop %>%
+      unique
+    return(cleaned_values)
+  })
+  
+  strokes_gained <- lapply(variable_levels, function(levels, lp_matrix = df_lp, mc = model_coefs){
+    level_values <- lapply(levels, function(x, lp_matrix_ = lp_matrix, mc_ = mc){
+      cleaned_names <- mc_ %>%
+        names %>%
+        str_replace_all(fixed("s(left_to_pin_before):"), "") %>%
+        str_replace_all("club_factor", "") %>%
+        str_replace_all("lie_before_factor", "") %>%
+        str_extract_all("[a-zA-Z ]+", simplify = T) %>%
+        drop
+      
+      type_lgl <- cleaned_names == x
+      values <- lp_matrix_[, type_lgl] %*% mc_[type_lgl] %>% drop %>% unname
+    })
+    names(level_values) <- levels
+    return(level_values)
+  })
+  
+  strokes_added <- strokes_gained %>%
+    lapply(as.data.frame) %>%
+    lapply(function(x) cbind(x, left_to_pin_before = .df$left_to_pin_before)) %>%
+    lapply(gather, levels, strokes_added, -left_to_pin_before) %>%
+    lapply(mutate, levels = str_replace_all(levels, fixed("."), " "))
+  
+  strokes_gained_df <- left_join(.df, strokes_added[[1]], by = c("club_factor" = "levels", "left_to_pin_before")) %>%
+    left_join(strokes_added[[2]], by = c("lie_before_factor" = "levels", "left_to_pin_before"))
+  
+  return(strokes_gained_df)
+}
+
+club_values <- stroke_values(club_gam, club_grid, club_factor, lie_before_factor)
+
+club_values %>%
+  gather(levels, strokes_added, -left_to_pin_before, -predicted_shots_ordinal, -club_factor, -lie_before_factor, -predicted_value) %>%
+  mutate(levels = str_replace_all(levels, fixed("."), " ")) %>%
+  filter(club_factor == levels) %>%
+  left_join(club_range, by = c("club_factor")) %>%
+  filter(left_to_pin_before > p_lower, left_to_pin_before < p_upper) %>%
+  ggplot(aes(x = left_to_pin_before / 36, y = strokes_added, color = club_factor)) +
   geom_point() +
   facet_wrap(~lie_before_factor, nrow = 3)
 

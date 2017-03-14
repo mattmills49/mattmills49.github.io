@@ -3,6 +3,7 @@ title: "Club Recommender for David Horsey"
 author: "Matt Mills"
 output:
   pdf_document: default
+  html_document: NULL
 ---
 
 ```{r setup, include=FALSE}
