@@ -4,9 +4,18 @@ library(ggplot2)
 library(tidyr)
 library(mgcv)
 library(stringr)
+<<<<<<< HEAD
 options(dplyr.width = Inf)
 
 shots <- read_csv(file = "~/Documents/golf/hackathon-data-horsey.csv", col_types = cols(
+=======
+
+file_path <- "~/Documents/sample data/hackathon-data-horsey.csv"
+# file_path <- "~/Documents/golf/hackathon-data-horsey.csv"
+
+options(dplyr.width = Inf)
+shots <- read_csv(file = file_path, col_types = cols(
+>>>>>>> 146e1c6e142b544d110de5e68f6008c799c0502b
   round_date = col_date(format = ""),
   round_no = col_integer(),
   hole_no = col_integer(),
@@ -264,23 +273,29 @@ stroke_values <- function(gam_model, .df, ...){
     lapply(as.data.frame) %>%
     lapply(function(x) cbind(x, left_to_pin_before = .df$left_to_pin_before)) %>%
     lapply(gather, levels, strokes_added, -left_to_pin_before) %>%
-    lapply(mutate, levels = str_replace_all(levels, fixed("."), " "))
+    lapply(filter, strokes_added != 0L) %>%
+    lapply(mutate, levels = factor(str_replace_all(levels, fixed("."), " "))) %>%
+    lapply(distinct)
+  
+  new_names <- list("strokes_added.x", "strokes_added.y")
+  names(new_names) <- str_c("strokes_added_", variables)
   
   strokes_gained_df <- left_join(.df, strokes_added[[1]], by = c("club_factor" = "levels", "left_to_pin_before")) %>%
-    left_join(strokes_added[[2]], by = c("lie_before_factor" = "levels", "left_to_pin_before"))
+    left_join(strokes_added[[2]], by = c("lie_before_factor" = "levels", "left_to_pin_before")) %>%
+    rename_(.dots = new_names)
+    
   
   return(strokes_gained_df)
 }
 
-club_values <- stroke_values(club_gam, club_grid, club_factor, lie_before_factor)
+small_club_grid <- club_grid %>% 
+  left_join(club_range, by = c("club_factor")) %>% 
+  filter(left_to_pin_before > p_lower, left_to_pin_before < p_upper)
 
-club_values %>%
-  gather(levels, strokes_added, -left_to_pin_before, -predicted_shots_ordinal, -club_factor, -lie_before_factor, -predicted_value) %>%
-  mutate(levels = str_replace_all(levels, fixed("."), " ")) %>%
-  filter(club_factor == levels) %>%
-  left_join(club_range, by = c("club_factor")) %>%
-  filter(left_to_pin_before > p_lower, left_to_pin_before < p_upper) %>%
-  ggplot(aes(x = left_to_pin_before / 36, y = strokes_added, color = club_factor)) +
-  geom_point() +
-  facet_wrap(~lie_before_factor, nrow = 3)
+club_values <- stroke_values(club_gam, small_club_grid, club_factor, lie_before_factor)
+
+ggplot(aes(x = left_to_pin_before / 36, y = strokes_added_lie_before_factor - strokes_added_club_factor, color = club_factor), data = club_values) +
+  geom_point() + 
+  facet_wrap(~lie_before_factor, nrow = 3, scales = "free_y")
+
 
