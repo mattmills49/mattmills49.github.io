@@ -4,8 +4,8 @@ library(ggplot2)
 library(tidyr)
 library(mgcv)
 library(stringr)
-
 options(dplyr.width = Inf)
+
 shots <- read_csv(file = "~/Documents/golf/hackathon-data-horsey.csv", col_types = cols(
   round_date = col_date(format = ""),
   round_no = col_integer(),
