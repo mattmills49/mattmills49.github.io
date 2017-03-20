@@ -4,18 +4,12 @@ library(ggplot2)
 library(tidyr)
 library(mgcv)
 library(stringr)
-<<<<<<< HEAD
 options(dplyr.width = Inf)
-
-shots <- read_csv(file = "~/Documents/golf/hackathon-data-horsey.csv", col_types = cols(
-=======
 
 file_path <- "~/Documents/sample data/hackathon-data-horsey.csv"
 # file_path <- "~/Documents/golf/hackathon-data-horsey.csv"
 
-options(dplyr.width = Inf)
 shots <- read_csv(file = file_path, col_types = cols(
->>>>>>> 146e1c6e142b544d110de5e68f6008c799c0502b
   round_date = col_date(format = ""),
   round_no = col_integer(),
   hole_no = col_integer(),
