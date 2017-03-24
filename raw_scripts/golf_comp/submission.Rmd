@@ -18,9 +18,11 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(tidyr))
 suppressPackageStartupMessages(library(mgcv))
+suppressPackageStartupMessages(library(stringr))
 
 options(dplyr.width = Inf)
-shots <- read_csv(file = "~/Documents/golf/hackathon-data-horsey.csv", col_types = cols(
+file_path <- "~/Documents/sample data/hackathon-data-horsey.csv"
+shots <- read_csv(file = file_path, col_types = cols(
   round_date = col_date(format = ""),
   round_no = col_integer(),
   hole_no = col_integer(),
@@ -70,7 +72,7 @@ The perspective of this model considers the quality of a player's position
 before a shot using this formula.
 
 \[ 
-shot\_value = f(pin\_distance, current\_lie) 
+shot\_value = f(pin\_distance | current\_lie) 
 \]
 
 This model was estimated using an ordinal generalized additive model using
@@ -87,7 +89,8 @@ cats <- sort(unique(shots$shots_remaining))
 ordered_model <- gam(shots_remaining ~ s(left_to_pin_before, by = lie_before_factor),
                      data = shots,
                      family = ocat(theta = cats[c(-1, -8)]))
-## gam uses -1 as the first cut level and the last category doesn't need a cut variable
+## gam uses -1 as the first cut level and the last category doesn't need a cut 
+## level since it's the last one
 ```
 
 This model was chosen because of the insight that can be gained by having
@@ -126,10 +129,12 @@ ordered_predictions %>%
   theme_minimal() +
   scale_y_continuous(labels = function(x) paste0(x * 100, "%")) +
   theme(strip.background = element_blank(),
-        strip.text = element_text(face = "bold")) +
+        strip.text = element_text(face = "bold"),
+        legend.position = "top") +
   ggtitle("Probability of Finishing Hole in Certain Number of Strokes", subtitle = "By Condition of the Current Lie") +
   xlab("Distance to Pin (Yards)") +
-  ylab("Probability of Finishin Hole")
+  ylab("Probability of Finishin Hole") +
+  guides(color = guide_legend(nrow = 1))
 ```
 
 For example, this model estimates a putt from 5 yards out on the Green has around a 62% chance of being made, while a shot from the Fairway has ~8% chance of going in. 
@@ -152,6 +157,8 @@ shots %>%
 A full picture of the expected shots remaining for a givin lie and distance can
 be seen below.
 
+\pagebreak
+
 ```{r, echo = F}
 plot_df <- data_grid %>%
   left_join(lie_range, by = c("lie_before_factor")) %>% 
@@ -171,9 +178,11 @@ ggplot() +
           subtitle = "Restricted to where 90% of lies are seen")
 ```
 
-It should be said that this expected shots model is actually a "Expected Shots Remaining given the courses David Horesy played in 2016"; It doesn't have
-as nice of a ring to it but it is more accurate. With more shot data from more
-players and more tournaments the generalizability of this model should increase.
+It should be said that this expected shots model is actually a "Expected Shots
+Remaining given the courses David Horesy played in 2016 and the results of those
+shots"; It doesn't have as nice of a ring to it but it is more accurate. With
+more shot data from more players and more tournaments the generalizability of
+this model should increase.
 
 ## Strokes Gained During a Shot
 
@@ -199,8 +208,10 @@ shot_value %>%
   filter(round_no == 2, hole_no == 18, name == "DP World Tour Championship, Dubai") %>% 
   select(shot_no, left_to_pin_before, lie_before, predicted_shots_ordinal, after_shot_esr, shot_value) %>%
   mutate(left_to_pin_before = left_to_pin_before / 36) %>%
-  knitr::kable(digits = 2, align = "c", col.names = c("Shot Number", "Distance to Pin (Yards)", "Current Lie", "Shots Remaining Before", "Shots Remaining After", "Strokes Gained"))
+  knitr::kable(digits = 2, align = "c", col.names = c("Shot Number", "Distance to Pin", "Current Lie", "Shots Remaining Before", "Shots Remaining After", "Strokes Gained"))
 ```
+
+\pagebreak
 
 ## A Model for Estimating the Strokes Gained for a Shot
 
@@ -210,13 +221,17 @@ Now that we have an estimate for the strokes gained during a shot we can attempt
 strokes\_gained = f(club\_choice | distance) + f(current\_lie | distance)
 \]
 
-The rationale for this model is that certain club types are better at different
-distances and different lies have different effects on each club.
+The rationale for this model is that certain club types are better at different 
+distances and different lies. So given a lie and distance we should be able to 
+optimize our club choice to give us the club that has been shown to increase the
+strokes gained for similar shots. It is important to note that we want to
+maximize the strokes gained on a shot; a good shot will decrease our expected 
+shots remaining by "gaining" more strokes than expected on that shot.
 
 This model is fit using another generalized additive model with different 
-smoothing splines estimated for each club type and each lie and is shown below.
-With this construct we have an estimate for impact of club choice on the strokes
-gained during a shot given that shot's distance and current lie.
+smoothing splines estimated for each club type and each lie as shown below. With
+this formulation we can derive an estimate for impact of club choice on the
+strokes gained during a shot given that shot's distance and current lie.
 
 ```{r}
 shot_value$club_factor <- factor(shot_value$club)
@@ -237,23 +252,106 @@ club_range <- shot_value %>%
   group_by(club_factor) %>%
   summarize(p_lower = quantile(left_to_pin_before, probs = .05), p_upper = quantile(left_to_pin_before, probs = .95))
 
-club_grid %>%
-  left_join(club_range, by = c("club_factor")) %>%
-  filter(left_to_pin_before < p_upper, left_to_pin_before > p_lower) %>%
-  ggplot(aes(x = left_to_pin_before / 36, y = predicted_value, color = club_factor)) +
-  geom_point() +
+# I want to isolate the effect of each club in terms of strokes gained. 
+# So, for each club and each lie I want to visualize their impact. So I'll
+# need to find the value for both and then take the difference. 
+
+stroke_values <- function(gam_model, .df, ...){
+  variables <- as.character(substitute(list(...)))[-1]
+  df_lp <- predict(gam_model, newdata = .df, type = "lpmatrix")
+  model_coefs <- coef(gam_model)
+  
+  variable_levels <- lapply(variables, function(x, mc = model_coefs){
+    cleaned_names <- mc %>%
+      names %>%
+      str_replace_all(fixed("s(left_to_pin_before):"), "")
+    var_values <- cleaned_names %>% str_detect(x)
+    cleaned_values <- cleaned_names[var_values] %>%
+      str_replace_all(x, "") %>%
+      str_extract_all("[a-zA-Z ]+", simplify = T) %>%
+      drop %>%
+      unique
+    return(cleaned_values)
+  })
+  
+  strokes_gained <- lapply(variable_levels, function(levels, lp_matrix = df_lp, mc = model_coefs){
+    level_values <- lapply(levels, function(x, lp_matrix_ = lp_matrix, mc_ = mc){
+      cleaned_names <- mc_ %>%
+        names %>%
+        str_replace_all(fixed("s(left_to_pin_before):"), "") %>%
+        str_replace_all("club_factor", "") %>%
+        str_replace_all("lie_before_factor", "") %>%
+        str_extract_all("[a-zA-Z ]+", simplify = T) %>%
+        drop
+      
+      type_lgl <- cleaned_names == x
+      values <- lp_matrix_[, type_lgl] %*% mc_[type_lgl] %>% drop %>% unname
+    })
+    names(level_values) <- levels
+    return(level_values)
+  })
+  
+  strokes_added <- strokes_gained %>%
+    lapply(as.data.frame) %>%
+    lapply(function(x) cbind(x, left_to_pin_before = .df$left_to_pin_before)) %>%
+    lapply(gather, levels, strokes_added, -left_to_pin_before) %>%
+    lapply(filter, strokes_added != 0L) %>%
+    lapply(mutate, levels = factor(str_replace_all(levels, fixed("."), " "))) %>%
+    lapply(distinct)
+  
+  new_names <- list("strokes_added.x", "strokes_added.y")
+  names(new_names) <- str_c("strokes_added_", variables)
+  
+  strokes_gained_df <- left_join(.df, strokes_added[[1]], by = c("club_factor" = "levels", "left_to_pin_before")) %>%
+    left_join(strokes_added[[2]], by = c("lie_before_factor" = "levels", "left_to_pin_before")) %>%
+    rename_(.dots = new_names)
+    
+  
+  return(strokes_gained_df)
+}
+
+small_club_grid <- club_grid %>% 
+  left_join(club_range, by = c("club_factor")) %>% 
+  filter(left_to_pin_before > p_lower, left_to_pin_before < p_upper)
+
+club_values <- stroke_values(club_gam, small_club_grid, club_factor, lie_before_factor)
+
+ggplot(aes(x = left_to_pin_before / 36, y = strokes_added_club_factor - strokes_added_lie_before_factor, color = club_factor), data = club_values) +
+  geom_point() + 
   facet_wrap(~lie_before_factor, nrow = 3, scales = "free_y") +
   theme_minimal() +
   theme(strip.text = element_text(face = "bold"),
         legend.position = "top") +
   xlab("Distance to Pin (Yards)") +
-  ylab("Expected Shot Value") +
-  ggtitle("Model Estimates for a Shot's Value",
+  ylab("Strokes Gained with Club Choice") +
+  ggtitle("Model Estimates for a Club's Value",
           subtitle = "Restricted to where 90% of each club is used") +
   guides(override.aes = list(size = 2)) +
-  scale_color_discrete(name = "Club Type")
+  scale_color_discrete(name = "Club Type") +
+  guides(color = guide_legend(nrow = 1))
   
 ```
 
-There are a couple caveats with this model. The model is dependent on different club types 
+My hypothesis coming in was that certain clubs would be better for some lies 
+than others but that does not seem to be the case. According to this model the 
+Fairway Wood always improved the strokes gained more than any other club no 
+matter the lie, at least where the Fairway Wood was commonly used. With more
+data we could hopefully tell if this results is an artifact of the sample we
+were given, due to a biased club choice (fairway wood only being used on the
+best lies of each individual lie type), or if it actually exists.
+
+## Conclussions
+
+There are a couple caveats with this analysis. The club choice model is
+dependent on different club types being used at similar distances so we have
+data to estimate the value of picking one club over another. In addition ideally
+we would be able to fit the Expected Strokes Remaining and Strokes Gained models
+on different datasets. However with only 14 tournaments worth of data for one
+player I decided to show the overall proof of concept using all data for both
+models.
+
+However even with all the caveats I think that there is ample evidence that
+data-driven analysis could improve Mr. Horsey's understanding of his own game
+and hopefully even influence his decision making on the course during actual 
+tournaments.
 

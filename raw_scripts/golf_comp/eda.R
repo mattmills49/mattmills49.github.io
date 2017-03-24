@@ -288,7 +288,7 @@ small_club_grid <- club_grid %>%
 
 club_values <- stroke_values(club_gam, small_club_grid, club_factor, lie_before_factor)
 
-ggplot(aes(x = left_to_pin_before / 36, y = strokes_added_lie_before_factor - strokes_added_club_factor, color = club_factor), data = club_values) +
+ggplot(aes(x = left_to_pin_before / 36, y = strokes_added_club_factor - strokes_added_lie_before_factor, color = club_factor), data = club_values) +
   geom_point() + 
   facet_wrap(~lie_before_factor, nrow = 3, scales = "free_y")
 
