@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the sample data for the Hawks - Knicks game on January 3rd
+
+```{r formatting_explore}
+library(rjson)
+test <- fromJSON(file = "~/Documents/sample data/nba player tracking/0021500506.json")
+
+event_lengths <- vapply(test$events, length, numeric(1))
+```
+
+Each event has 4 lists;
+
+```{r}
+names(test$events[[1]])
+# "eventId" "visitor" "home"    "moments"
+```
+
+the `visitor` and `home` lists contain roster information
+
+```{r}
+names(test$events[[1]][[2]])
+# "name"         "teamid"       "abbreviation" "players"   
+```
+
