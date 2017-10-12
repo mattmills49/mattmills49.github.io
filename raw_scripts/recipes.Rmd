@@ -1,0 +1,56 @@
+---
+title: "Recipes Walkthrough""
+output: pdf_document
+---
+
+
+```{r}
+library(recipes)
+library(caret)
+data("segmentationData")
+
+seg_train <- segmentationData %>% 
+  filter(Case == "Train") %>% 
+  select(-Case, -Cell)
+seg_test  <- segmentationData %>% 
+  filter(Case == "Test")  %>% 
+  select(-Case, -Cell)
+```
+
+```{r}
+rec_obj <- recipe(Class ~ ., data = seg_train)
+print(rec_obj)
+
+standardized <- rec_obj %>%
+  step_center(all_predictors()) %>%
+  step_scale(all_predictors())
+
+print(standardized)
+
+trained_rec <- prep(standardized, training = seg_train)
+print(trained_rec)
+
+train_data <- bake(trained_rec, newdata = seg_train)
+test_data <- bake(trained_rec, newdata = seg_test)
+
+trained_rec <- step_pca(trained_rec, ends_with("Ch1"), contains("area"), num = 5)
+
+trained_rec <- prep(trained_rec, training = seg_train)
+
+test_data <- bake(trained_rec, newdata = seg_test)
+
+steps <- apropos("^step_")
+steps[!grepl("new$", steps)]
+
+```
+
+```{r}
+data("credit_data")
+rec <- recipe(Status ~ Seniority + Time + Age + Records, data = credit_data)
+
+summary(rec, original = T)
+
+dummied <- rec %>% step_dummy(all_nominal(), -all_outcomes())
+
+```
+
