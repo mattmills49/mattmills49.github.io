@@ -101,10 +101,10 @@ coefficients directly ($\beta * D^TD * \beta$ / `w * D'D * w` ), so I
 think this is fine. Now we just need to build our model using `glum`
 
 
-{% highlight python linenos %}
+```python
 daily_solar_gam = GeneralizedLinearRegressor(alpha = 1, P2 = p2, fit_intercept = False)
 daily_solar_gam.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
-{% endhighlight %}
+```
 
 It’s that easy, lets look at our predictions.
 
