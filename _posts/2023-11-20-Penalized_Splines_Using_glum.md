@@ -2,8 +2,8 @@
 layout: post
 title: How to fit Penalized Splines with the glum library
 math: true
-image: ../img/glum_splines//cell-9-output-1.png
-share-image: ../img/glum_splines//cell-9-output-1.png
+image: /img/glum_splines/cell-9-output-1.png
+share-image: /img/glum_splines/cell-9-output-1.png
 ---
 
 I recently discovered a new python library for fitting GLMs called
@@ -115,7 +115,7 @@ We now have a way to include smoothing spline terms in our GLM in
 `glum`! We can use `glum` to easily see different levels of the penalty
 amount and how that forces different shapes of our curve.
 
-![](../img/glum_splines//cell-9-output-1.png)
+![](../img/glum_splines/cell-9-output-1.png)
 
 We could then use a more formal evaluation criteria like GCV or AIC to
 pick the optimal level of smoothing. Here is looks like $\alpha = 10$ is
