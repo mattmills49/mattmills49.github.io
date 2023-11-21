@@ -76,7 +76,7 @@ prediction at neighboring regions of our original feature distribution
 this will cause the entire predicted curve to be “smooth”. In math we
 might have a series of coefficients $\beta_i$ and we need to keep track
 of the differences between successive pairs.
-$$ Penalty = (\beta_1 - \beta_0) + (\beta_2 - \beta_1) + ... $$
+\[ Penalty = (\beta_1 - \beta_0) + (\beta_2 - \beta_1) + ... \]
 
 This is called a difference matrix and has a built in function in
 `numpy` for us to use. We actually use the 2nd difference matrix, which
