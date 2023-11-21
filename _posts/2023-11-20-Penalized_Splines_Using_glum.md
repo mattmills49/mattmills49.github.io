@@ -2,6 +2,8 @@
 layout: post
 title: How to fit Penalized Splines with the glum library
 math: true
+image: ../img/glum_splines//cell-9-output-1.png
+share-image: ../img/glum_splines//cell-9-output-1.png
 ---
 
 I recently discovered a new python library for fitting GLMs called
