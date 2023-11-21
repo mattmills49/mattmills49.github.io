@@ -139,7 +139,7 @@ the first coefficient to the very beginning of the year, this will add a
 penalty to make them similar unless the data overrides this constraint.
 Here is how we would make that change to our penalty matrix:
 
-``` python
+```python
 cyclic_row = np.zeros(penalty_matr.shape[1])
 # D * B means we want (B_0 - B_26)
 cyclic_row[0] = 1
@@ -181,7 +181,7 @@ itself. I hope to follow this post with showing how we can incorporate
 multiple spline terms in one model using this method.
 
 You can view the python code for this blog post on my github
-[here](link). Relatedly I wrote this blog post using the new `quarto`
+[here](https://github.com/mattmills49/mattmills49.github.io/blob/master/raw_scripts/glum_splines.qmd). Relatedly I wrote this blog post using the new `quarto`
 literatte programming document format. If anyone has used quarto with
 python, VS Code, or github pages I’d love to hear your feedback on how
 it went!
