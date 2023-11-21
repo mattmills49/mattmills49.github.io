@@ -80,7 +80,8 @@ kramdown:
   syntax_highlighter: rouge
   syntax_highlighter_opts:
     css_class: 'highlight'
-    line_numbers: true
+    span: 
+        line_numbers: true
 
 # Default YAML values (more information on Jekyll's site)
 defaults:
