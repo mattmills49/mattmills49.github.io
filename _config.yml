@@ -41,7 +41,7 @@ author:
   email: "mattmills49@gmail.com"
   github: mattmills49    # eg. daattali
   twitter: statmills   # eg. daattali
-  linkedin: in/matt-mills-49390240  # eg. "pub/dean-attali/8/946/143"
+  linkedin: in/statmills  # eg. "pub/dean-attali/8/946/143"
  
 # Select which links to show in the footer
 footer-links-active:
@@ -55,7 +55,7 @@ footer-links-active:
 
 # How to display the link to the website in the footer
 # Remove this if you don't want a link in the footer
-url-pretty: "www.mattmills49.github.io"  # eg. "deanattali.com/beautiful-jekyll"
+url-pretty: "www.statmills.com"  # eg. "deanattali.com/beautiful-jekyll"
 
 # --- Misc --- #
 
@@ -76,6 +76,7 @@ paginate: 5
 
 kramdown:
   input: GFM
+  math_engine: mathjax
 
 # Default YAML values (more information on Jekyll's site)
 defaults:
