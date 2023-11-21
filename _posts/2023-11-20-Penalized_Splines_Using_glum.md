@@ -1,4 +1,7 @@
-# How to fit Penalized Splines with the glum library
+---
+layout: post
+title: How to fit Penalized Splines with the glum library
+---
 
 I recently discovered a new python library for fitting GLMs called
 [glum](https://glum.readthedocs.io/en/latest/index.html). This package
@@ -103,13 +106,13 @@ daily_solar_gam.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
 
 It’s that easy, lets look at our predictions.
 
-![](glum_splines_files/figure-commonmark/cell-8-output-1.png)
+![](../img/glum_splines/cell-8-output-1.png)
 
 We now have a way to include smoothing spline terms in our GLM in
 `glum`! We can use `glum` to easily see different levels of the penalty
 amount and how that forces different shapes of our curve.
 
-![](glum_splines_files/figure-commonmark/cell-9-output-1.png)
+![](../img/glum_splines//cell-9-output-1.png)
 
 We could then use a more formal evaluation criteria like GCV or AIC to
 pick the optimal level of smoothing. Here is looks like $\alpha = 10$ is
@@ -159,12 +162,12 @@ cyclic_coefs = daily_solar_gam_cyclic.coef_
 Now we can compare the two end-coefficients between the models to show
 our cyclic penalty has made the endpoints much similar.
 
-![](glum_splines_files/figure-commonmark/cell-12-output-1.png)
+![](../img/glum_splines/cell-12-output-1.png)
 
 Lets see how the overall curve shape looks with this new penalty
 compared to the baseline model.
 
-![](glum_splines_files/figure-commonmark/cell-13-output-1.png)
+![](../img/glum_splines/cell-13-output-1.png)
 
 The cyclic model is pretty similar to the original model’s curve because
 the data is already pretty symetric. But, now we can ensure our
