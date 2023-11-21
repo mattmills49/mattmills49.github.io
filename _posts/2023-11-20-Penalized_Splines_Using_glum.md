@@ -83,7 +83,7 @@ This is called a difference matrix and has a built in function in
 is the difference between the differences of the coefficients, for even
 smoother coefficients.
 
-``` python
+```python
 ## We feed np.diff a diagonal matrix of 1's for each of our splines
 ## n = 2 tells us we want the 2nd difference 
 ## axis = 0 is to calculate the difference across the rows
@@ -100,10 +100,11 @@ actually matches what the solution would be if we were to solve for the
 coefficients directly ($\beta * D^TD * \beta$ / `w * D'D * w` ), so I
 think this is fine. Now we just need to build our model using `glum`
 
-``` python
+
+{% highlight python linenos %}
 daily_solar_gam = GeneralizedLinearRegressor(alpha = 1, P2 = p2, fit_intercept = False)
 daily_solar_gam.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
-```
+{% endhighlight %}
 
 It’s that easy, lets look at our predictions.
 
