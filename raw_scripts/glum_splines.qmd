@@ -1,0 +1,168 @@
+---
+title: "How to fit Penalized Splines with the glum library"
+format: 
+    gfm: 
+        preview-mode: raw
+---
+
+I recently discovered a new python library for fitting GLMs called [glum](https://glum.readthedocs.io/en/latest/index.html). This package is developed not only to be [fast](https://glum.readthedocs.io/en/latest/benchmarks.html) but also allows custom penalties for different terms in the model, as well as including your own penalty matrix in your model fitting. This could allow us to include spline terms in our models ala GAMs fit using `pygam` or `mgcv` in `R`. The speed and flexibility is enticing enough that I thought it would be fun to begin building some tools that allow us to use penalized splines in `glum` and learn more to potentially assist with including this functionality in the package itself. 
+
+My goal in this post is to work through a workflow to combine the basis splines that `scikit-learn` can now produce with a custom difference matrix times as inputs to a `glum` model that will "think" its just fitting a normal GLM. Then we can work on buidling out a more comprehensive workflow in later posts. 
+
+#### Background Info
+
+If you are unfamiliar with Penalized Splines I would highly encourage reading [A Crash Course on P-Splines](http://ce.esalq.usp.br/sites/default/files/Crash_course_handout.pdf) from Eilers and Marx. Basically a P-Spline (**P**enalized Spline) is a basis spline with a custom penalty matrix that enforces constraints on the spline coefficients. Normally this constraint is just smoothness (we don't want the neighboring spline coefficients to differ too much unless the data forces it in that direction), but it can also be extended to cyclic constraints (e.g. the first and last week of an annual effect could be equal) or monotonic constraints. Their big takeaway is that you can enforce these constraints just with a well designed penalty matrix. Since `glum` allows us to pass our own penalty matrix for the model coefficients we should be able to recreate P-Splines in our own model. 
+
+#### Generating B-Splines
+
+Basis Splines are the unpenalized splines that give our model its flexibility. There are many resources to learn more about them including the Crash Course I linked to above so I won't get into them here. As of version 1.0 `scikit-learn` has included a `SplineTransformer` in its `preprocessing` module. This will generate our B-splines for a given feature in our model. Since the point of this post isn't really to explain what B-splines are I'll just show the end product of splines we end up with. 
+
+```{python}
+#| echo: False
+import numpy as np
+import pandas as pd
+from plotnine import *
+
+from sklearn.preprocessing import SplineTransformer
+from glum import GeneralizedLinearRegressor, GeneralizedLinearRegressorCV
+
+## Source: https://www.ercot.com/mp/data-products/data-product-details?id=PG7-126-M
+DATA_FILE = '../data/ERCOT_2022_Hourly_Solar_Output.csv'
+```
+
+```{python}
+#| echo: False
+#| output: False
+solar_df = pd.read_csv(DATA_FILE)
+solar_df['time'] = pd.to_datetime(solar_df['Time (Hour-Ending)'])
+solar_df['hour'] = solar_df['time'].dt.hour
+solar_df['day'] = solar_df['time'].dt.dayofyear
+solar_df['week'] = solar_df['time'].dt.weekofyear
+
+daily_solar_df = solar_df.groupby('day')['ERCOT.PVGR.GEN'].agg('sum').reset_index()
+daily_solar_df['power_gw'] = daily_solar_df['ERCOT.PVGR.GEN'] / 1000
+## n_knots = 26 so there is a knot every other week :shrug:
+daily_solar_spline = SplineTransformer(n_knots = 26, include_bias = True).fit_transform(daily_solar_df[['day']])
+```
+
+```{python}
+#| echo: False
+## there are actually more splines than knots because their are splines at the 
+## ends of the range as well. The number of splines = knots + degree - 1
+num_splines = daily_solar_spline.shape[1]
+daily_solar_spline_df = pd.DataFrame(daily_solar_spline, columns = [f'BS({i})' for i in range(num_splines)])
+daily_solar_spline_df['day'] = np.arange(daily_solar_df.shape[0]) + 1
+## Make it tall for plotting with plotnine
+daily_solar_spline_df_tall = daily_solar_spline_df.melt(id_vars = ['day'], var_name = 'spline_num', value_name = 'spline_val')
+```
+
+```{python}
+#| echo: False
+ggplot(daily_solar_spline_df_tall, aes(x = 'day', y = 'spline_val', color = 'spline_num')) + geom_line() + guides(color = False) + ggtitle('B-Splines for Days of the Year') + xlab('Day of the Year') + ylab('Spline Value') + theme_bw() + theme(dpi = 150, figure_size = (4, 2.5))
+```
+
+Each colored line is an individual B-spline that covers a range of our original feature, the days of the year. I like to think of it as each spline is only "activated" over a small portion of the range of values of the original feature. But for any given feature value there will be 3 active splines at that value (the degree of the spline matches this number). We take these "raw" B-splines and then weight them and sum them together to predict our dependent variable; using them as features to a regression model does this automatically. 
+
+#### The Model
+
+Now that we have our B-spline features to use in our model we need our penalty matrix. Because we can have many B-splines across the feature distribution we need a way to prevent overfitting. A common method for reduce overfitting is to enforce "smoothness" within the model. If you want to read more about why we choose this value to penalize I would recommend [Simon Wood's book](https://www.routledge.com/Generalized-Additive-Models-An-Introduction-with-R-Second-Edition/Wood/p/book/9781498728331) on Generalized Additive Models. Smoothness can be expressed as saying we don't want the coefficients of neighboring splines to differ too much. Since our splines multiplied by the coefficients contribute to the prediction at neighboring regions of our original feature distribution this will cause the entire predicted curve to be "smooth". In math we might have a series of coefficients $\beta_i$ and we need to keep track of the differences between successive pairs. 
+$$ Penalty = (\beta_1 - \beta_0) + (\beta_2 - \beta_1) + ... $$
+
+This is called a difference matrix and has a built in function in `numpy` for us to use. We actually use the 2nd difference matrix, which is the difference between the differences of the coefficients, for even smoother coefficients. 
+
+```{python}
+## We feed np.diff a diagonal matrix of 1's for each of our splines
+## n = 2 tells us we want the 2nd difference 
+## axis = 0 is to calculate the difference across the rows
+penalty_matr = np.diff(np.diag(np.ones(num_splines)), n = 2, axis = 0)
+p2 = np.dot(penalty_matr.T, penalty_matr)
+```
+
+In our optimization function we simply use the difference matrix directly with the coefficient vector. However `glum` requires a `(n_features, n_features)` matrix and we lose a row everytime we do the difference operation. We can simply pass the transpose times the original difference matrix to get back to a square penalty matrix. This actually matches what the solution would be if we were to solve for the coefficients directly ($\beta * D^TD * \beta$ / `w * D'D * w` ), so I think this is fine. Now we just need to build our model using `glum`
+
+```{python}
+#| output: False
+daily_solar_gam = GeneralizedLinearRegressor(alpha = 1, P2 = p2, fit_intercept = False)
+daily_solar_gam.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
+```
+
+It's that easy, lets look at our predictions. 
+
+```{python}
+#| echo: False
+daily_solar_df['preds_p1'] = daily_solar_gam.predict(daily_solar_spline)
+
+ggplot(daily_solar_df, aes(x = 'day')) + geom_point(aes(y = 'power_gw'), color = 'grey', alpha = .5, size = .5) + geom_line(aes(y = 'preds_p1'), size = 2, color = 'blue') + xlab('Day of the Year') + ylab('Total Solar Generated (GW)') + ggtitle('Model Predictions from P-Spline `glum` model') + theme_bw() + theme(dpi = 150, figure_size = (5, 3.5))
+```
+
+We now have a way to include smoothing spline terms in our GLM in `glum`! We can use `glum` to easily see different levels of the penalty amount and how that forces different shapes of our curve. 
+
+```{python}
+#| echo: False
+penalties = [10, 100, 1000]
+## tell glum to use our sequence of penalties, or alphas, with `alpha_search = True`
+daily_solar_gam_alphas = GeneralizedLinearRegressor(alpha = penalties, P2 = p2, fit_intercept = False, alpha_search = True)
+daily_solar_gam_alphas.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
+daily_solar_df[[f'preds_p{p}' for p in penalties]] = daily_solar_gam_alphas.predict(daily_solar_spline, alpha = penalties)
+
+daily_solar_df_tall_preds = daily_solar_df.drop(columns = ['ERCOT.PVGR.GEN']).melt(id_vars = ['day', 'power_gw'], var_name = 'penalty', value_name = 'pred')
+penalty_labels = {f'preds_p{i}': f'$\\alpha = {i}$' for i in [1] + penalties}
+daily_solar_df_tall_preds['penalty_label'] = [penalty_labels[l] for l in daily_solar_df_tall_preds['penalty']]
+
+ggplot(daily_solar_df_tall_preds, aes(x = 'day')) + geom_point(aes(y = 'power_gw'), color = 'grey', alpha = .5, size = .5) + geom_line(aes(y = 'pred', color = 'penalty_label'), size = 2) + facet_wrap('~penalty_label') + xlab('Day of the Year') + ylab('Total Solar Generated (GW)') + ggtitle('Model Predictions with various smooth penalties') + theme_bw() + theme(dpi = 150, figure_size = (5, 3.5)) + guides(color = False)
+
+```
+
+We could then use a more formal evaluation criteria like GCV or AIC to pick the optimal level of smoothing. Here is looks like $\alpha = 10$ is the optimal level of smoothing, to use the `glum` notation. 
+
+Maybe you are asking why this is a big deal; we could just include the B-splines as features in any model and get this non-linear relationship. The penalties and difference matrix allow us to control the smoothing directly. If we had simply used an L2 penalty without the difference matrix we would penalize the size of the coefficients but not the smoothness; this could produce more jumps and rougher edges at the knot locations as one spline cycles on and another cycles off. And we can also incorporate more constraints into the penalty matrix that give us even more control over our model. Lets say that we think the daily solar output for the year should be cyclical, i.e. the first and last day should produce the same amount of energy on average. This ignores any growth within that year of new solar panels, but this is just a toy example so assume that we are only estimating the annual component for now. We can do this by simply adding a row to our penalty matrix that penalizes the difference between the last coefficient and the first. Since the last coefficient corresponds to the very end of the year, and the first coefficient to the very beginning of the year, this will add a penalty to make them similar unless the data overrides this constraint. Here is how we would make that change to our penalty matrix:
+
+```{python}
+cyclic_row = np.zeros(penalty_matr.shape[1])
+# D * B means we want (B_0 - B_26)
+cyclic_row[0] = 1
+cyclic_row[-1] = -1
+cyclic_matr = np.vstack([penalty_matr, cyclic_row])
+cyclic_penalty = 10 ## matches the baseline model we will use
+p2_cyclic = np.dot(cyclic_matr.T, cyclic_matr)
+```
+
+Fitting a model with `p2_cyclic` is just as easy as our baseline model. 
+
+```{python}
+daily_solar_gam_base = GeneralizedLinearRegressor(alpha = cyclic_penalty, P2 = p2, fit_intercept = False)
+daily_solar_gam_base.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
+daily_solar_gam_cyclic = GeneralizedLinearRegressor(alpha = cyclic_penalty, P2 = p2_cyclic, fit_intercept = False)
+daily_solar_gam_cyclic.fit(X = daily_solar_spline, y = daily_solar_df['power_gw'])
+base_coefs = daily_solar_gam_base.coef_
+cyclic_coefs = daily_solar_gam_cyclic.coef_
+```
+
+Now we can compare the two end-coefficients between the models to show our cyclic penalty has made the endpoints much similar. 
+
+```{python}
+#| echo: False
+coef_base_df = pd.DataFrame(dict(spline_num = np.arange(base_coefs.shape[0]), model = 'Baseline', coef = base_coefs))
+coef_cyclic_df = pd.DataFrame(dict(spline_num = np.arange(base_coefs.shape[0]), model = 'Cyclic', coef = cyclic_coefs))
+coef_df = pd.concat([coef_base_df, coef_cyclic_df])
+coef_df['spline_name'] = coef_df['spline_num'].apply(lambda x: f'BS({x})')
+
+ggplot(coef_df.loc[lambda df: df['spline_name'].isin(["BS(0)", "BS(27)"]) == True], aes(x = 'model', y = 'coef', fill = 'spline_name')) + geom_col(position = 'dodge') + xlab('') + ylab('Coefficient Value') + ggtitle('Diff in Coefficients between Cyclic and Baseline Penalty Matrix') + labs(fill = 'Spline Number') + theme_bw() + theme(axis_text_x = element_text(face = 'bold')) + geom_text(aes(label = 'spline_name'), position = position_dodge(width = 1), va = 'bottom') + guides(fill = False)
+```
+
+Lets see how the overall curve shape looks with this new penalty compared to the baseline model. 
+
+```{python}
+#| echo: False
+daily_solar_df['preds_cyclic'] = daily_solar_gam_cyclic.predict(daily_solar_spline)
+daily_solar_df_cyclic_tall = daily_solar_df.melt(id_vars = ['day', 'power_gw'], value_vars = ['preds_p10', 'preds_cyclic'], value_name = 'pred')
+daily_solar_df_cyclic_tall['model'] = np.where(daily_solar_df_cyclic_tall['variable'] == 'preds_cyclic', 'Cyclic', 'Baseline')
+
+ggplot(daily_solar_df_cyclic_tall, aes(x = 'day')) + geom_point(aes(y = 'power_gw'), color = 'grey', alpha = .5, size = .5) + geom_line(aes(y = 'pred', color = 'model'), size = 2)  + xlab('Day of the Year') + ylab('Total Solar Generated') + ggtitle('Model Predictions with Cyclic Penalty') + theme_bw()
+```
+
+The cyclic model is pretty similar to the original model's curve because the data is already pretty symetric. But, now we can ensure our coefficients reflect exactly what we want them to measure. 
+
+I hope you enjoyed this brief introduction to both P-splines and the `glum` package. I'm excited to explore this new package more and hopefully assist with getting this capability folded into the package itself. I hope to follow this post with showing how we can incorporate multiple spline terms in one model using this method.
+
+You can view the python code for this blog post on my github [here](link). Relatedly I wrote this blog post using the new `quarto` literatte programming document format. If anyone has used quarto with python, VS Code, or github pages I'd love to hear your feedback on how it went!
