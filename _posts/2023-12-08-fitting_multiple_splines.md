@@ -58,19 +58,6 @@ solar_df['power_gw'] = solar_df['ERCOT.PVGR.GEN'] / 1000
 solar_df.head()
 ```
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-&#10;    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-&#10;    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-
 |     | Time (Hour-Ending)  | Date   | ERCOT.LOAD | ERCOT.PVGR.GEN | Total Solar Installed, MW | Solar Output, % of Load | Solar Output, % of Installed | Solar 1-hr MW change | Solar 1-hr % change | Daytime Hour | Ramping Daytime Hour | time                | hour | day | week | day_of_week | power_gw |
 |-----|---------------------|--------|------------|----------------|---------------------------|-------------------------|------------------------------|----------------------|---------------------|--------------|----------------------|---------------------|------|-----|------|-------------|----------|
 | 0   | 01/01/2022 01:00:00 | Jan-01 | 38124      | 0              | 9323                      | 0.0                     | 0.0                          | NaN                  | NaN                 | False        | False                | 2022-01-01 01:00:00 | 1    | 1   | 52   | 5           | 0.0      |
@@ -78,8 +65,6 @@ solar_df.head()
 | 2   | 01/01/2022 03:00:00 | Jan-01 | 35937      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 03:00:00 | 3    | 1   | 52   | 5           | 0.0      |
 | 3   | 01/01/2022 04:00:00 | Jan-01 | 35133      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 04:00:00 | 4    | 1   | 52   | 5           | 0.0      |
 | 4   | 01/01/2022 05:00:00 | Jan-01 | 34603      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 05:00:00 | 5    | 1   | 52   | 5           | 0.0      |
-
-</div>
 
 #### Building a spline
 
@@ -120,9 +105,10 @@ with its own corresponding spline coefficients and no other term’s
 coefficients.
 
 $$
-\displaylines{ \mathbf{D_{hourly}} = \text{Hourly Penalty Matrix}\\
+\displaylines{ \mathbf{D_{hourly}} = \text{Hourly Penalty Matrix} \\
 \mathbf{D_{daily}} = \text{Daily Penalty Matrix} \\
 \mathbf{D_{model}} = 
+
 \begin{bmatrix}
 \mathbf{D_hourly} & \mathbf{0} \\
 \mathbf{0} & \mathbf{D_{daily}}
@@ -215,6 +201,7 @@ np.round(model_matrix[:3, :10], 2)
            [9.323e+03, 0.000e+00, 3.000e-02, 5.200e-01, 4.400e-01, 1.000e-02,
             0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00]])
 
+
 #### Fitting the Model
 
 Now that we have our penalty matrix and model matrix all that we have
@@ -279,10 +266,6 @@ gam_penalty_cyc = build_multiterm_penalty(full_penalty_list_cyc)
 gam_model_cyc = GeneralizedLinearRegressor(P2 = gam_penalty_cyc, alpha = 1, fit_intercept = False).fit(X = model_matrix, y = solar_df['power_gw'])
 solar_df['preds_cyc'] = gam_model_cyc.predict(model_matrix)
 ```
-
-    /Users/mm/Documents/Data Science/Blog Posts/lib/python3.7/site-packages/glum/_solvers.py:52: LinAlgWarning: Ill-conditioned matrix (rcond=1.58589e-18): result may not be accurate.
-
-    /Users/mm/Documents/Data Science/Blog Posts/lib/python3.7/site-packages/plotnine/layer.py:401: PlotnineWarning: geom_point : Removed 1 rows containing missing values.
 
 ![](../img/fitting_multiple_splines/cell-14-output-2.png)
 
