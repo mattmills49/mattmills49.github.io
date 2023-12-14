@@ -1,12 +1,11 @@
 ---
 layout: post
-title: How to fit Penalized Splines with the glum library
+title: Fitting Multiple Spline Terms in Python using glum
 math: true
 image: /img/fitting_multiple_splines/cell-17-output-2.png
 share-img: /img/fitting_multiple_splines/cell-17-output-2.png
 ---
 
-# Fitting Multiple Spline Terms in Python using glum
 
 In my last post I covered how you can fit Penalized Splines using the
 `glum` library in Python. Notionally `glum` was built to fit Generalized
@@ -96,8 +95,8 @@ full penalty matrix as a “sequence” of individual penalty matrices. So
 the difference matrices will be on the (large) diagonal and the outer
 triangles are filled with zeros. This way each penalty only interacts
 with its own corresponding spline coefficients and no other term’s
-coefficients. If $mathbf{D_hourly}$ is the penalty matrix for the hours
-of the day coefficients, and $mathbf{D_daily}$ is the penalty matrix for
+coefficients. If $\mathbf{D_hourly}$ is the penalty matrix for the hours
+of the day coefficients, and $\mathbf{D_daily}$ is the penalty matrix for
 the day of the year coefficient then our combined penalty matrix is
 just:
 
