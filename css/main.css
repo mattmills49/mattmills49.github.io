@@ -1,4 +1,5 @@
-@import url("pygment_highlights.css");
+/* @import url("pygment_highlights.css"); */
+@import "monokai.css";
 
 /* --- General --- */
 
@@ -552,5 +553,3 @@ table tr th :last-child,
 table tr td :last-child {
   margin-bottom: 0;
 }
-
-@import "monokai.css";
