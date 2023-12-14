@@ -90,6 +90,8 @@ for k, v in spline_info.items():
     spline_info[k]['diff_matr'] = np.diff(np.eye(v['num_splines']), n = 2, axis = 0)
 ```
 
+    Number of Basis Splines for daily feature: 28
+    Number of Basis Splines for hourly feature: 14
 
 Next is our combined penalty matrix. When we had one spline term we
 could just pass in the inner transpose product of the difference matrix
