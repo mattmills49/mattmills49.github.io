@@ -1,10 +1,12 @@
 ---
 layout: post
-title: Fitting Multiple Spline Terms in Python using glum
+title: How to fit Penalized Splines with the glum library
 math: true
-image: /img/fitting_multiple_splines/cell-11-output-2.png
-share-img: /img/fitting_multiple_splines/cell-11-output-2.png
+image: /img/fitting_multiple_splines/cell-17-output-2.png
+share-img: /img/fitting_multiple_splines/cell-17-output-2.png
 ---
+
+# Fitting Multiple Spline Terms in Python using glum
 
 In my last post I covered how you can fit Penalized Splines using the
 `glum` library in Python. Notionally `glum` was built to fit Generalized
@@ -55,16 +57,10 @@ DATA_FILE = '../../data/ERCOT_2022_Hourly_Solar_Output.csv'
 
 ``` python
 solar_df['power_gw'] = solar_df['ERCOT.PVGR.GEN'] / 1000
-solar_df.head()
+solar_df.head().to_markdown()
 ```
 
-|     | Time (Hour-Ending)  | Date   | ERCOT.LOAD | ERCOT.PVGR.GEN | Total Solar Installed, MW | Solar Output, % of Load | Solar Output, % of Installed | Solar 1-hr MW change | Solar 1-hr % change | Daytime Hour | Ramping Daytime Hour | time                | hour | day | week | day_of_week | power_gw |
-|-----|---------------------|--------|------------|----------------|---------------------------|-------------------------|------------------------------|----------------------|---------------------|--------------|----------------------|---------------------|------|-----|------|-------------|----------|
-| 0   | 01/01/2022 01:00:00 | Jan-01 | 38124      | 0              | 9323                      | 0.0                     | 0.0                          | NaN                  | NaN                 | False        | False                | 2022-01-01 01:00:00 | 1    | 1   | 52   | 5           | 0.0      |
-| 1   | 01/01/2022 02:00:00 | Jan-01 | 37123      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 02:00:00 | 2    | 1   | 52   | 5           | 0.0      |
-| 2   | 01/01/2022 03:00:00 | Jan-01 | 35937      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 03:00:00 | 3    | 1   | 52   | 5           | 0.0      |
-| 3   | 01/01/2022 04:00:00 | Jan-01 | 35133      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 04:00:00 | 4    | 1   | 52   | 5           | 0.0      |
-| 4   | 01/01/2022 05:00:00 | Jan-01 | 34603      | 0              | 9323                      | 0.0                     | 0.0                          | 0.0                  | 0.0                 | False        | False                | 2022-01-01 05:00:00 | 5    | 1   | 52   | 5           | 0.0      |
+|    | Time (Hour-Ending)   | Date   |   ERCOT.LOAD |   ERCOT.PVGR.GEN |   Total Solar Installed, MW |   Solar Output, % of Load |   Solar Output, % of Installed |   Solar 1-hr MW change |   Solar 1-hr % change | Daytime Hour   | Ramping Daytime Hour   | time                |   hour |   day |   week |   day_of_week |   power_gw |\n|---:|:---------------------|:-------|-------------:|-----------------:|----------------------------:|--------------------------:|-------------------------------:|-----------------------:|----------------------:|:---------------|:-----------------------|:--------------------|-------:|------:|-------:|--------------:|-----------:|\n|  0 | 01/01/2022 01:00:00  | Jan-01 |        38124 |                0 |                        9323 |                         0 |                              0 |                    nan |                   nan | False          | False                  | 2022-01-01 01:00:00 |      1 |     1 |     52 |             5 |          0 |\n|  1 | 01/01/2022 02:00:00  | Jan-01 |        37123 |                0 |                        9323 |                         0 |                              0 |                      0 |                     0 | False          | False                  | 2022-01-01 02:00:00 |      2 |     1 |     52 |             5 |          0 |\n|  2 | 01/01/2022 03:00:00  | Jan-01 |        35937 |                0 |                        9323 |                         0 |                              0 |                      0 |                     0 | False          | False                  | 2022-01-01 03:00:00 |      3 |     1 |     52 |             5 |          0 |\n|  3 | 01/01/2022 04:00:00  | Jan-01 |        35133 |                0 |                        9323 |                         0 |                              0 |                      0 |                     0 | False          | False                  | 2022-01-01 04:00:00 |      4 |     1 |     52 |             5 |          0 |\n|  4 | 01/01/2022 05:00:00  | Jan-01 |        34603 |                0 |                        9323 |                         0 |                              0 |                      0 |                     0 | False          | False                  | 2022-01-01 05:00:00 |      5 |     1 |     52 |             5 |          0 |
 
 #### Building a spline
 
@@ -90,8 +86,6 @@ for k, v in spline_info.items():
     spline_info[k]['diff_matr'] = np.diff(np.eye(v['num_splines']), n = 2, axis = 0)
 ```
 
-    Number of Basis Splines for daily feature: 28
-    Number of Basis Splines for hourly feature: 14
 
 Next is our combined penalty matrix. When we had one spline term we
 could just pass in the inner transpose product of the difference matrix
@@ -102,19 +96,17 @@ full penalty matrix as a “sequence” of individual penalty matrices. So
 the difference matrices will be on the (large) diagonal and the outer
 triangles are filled with zeros. This way each penalty only interacts
 with its own corresponding spline coefficients and no other term’s
-coefficients.
+coefficients. If $mathbf{D_hourly}$ is the penalty matrix for the hours
+of the day coefficients, and $mathbf{D_daily}$ is the penalty matrix for
+the day of the year coefficient then our combined penalty matrix is
+just:
 
 $$
-\displaylines{ \mathbf{D_{hourly}} = \text{Hourly Penalty Matrix} \\
-\mathbf{D_{daily}} = \text{Daily Penalty Matrix} \\
-\mathbf{D_{model}} = 
-
 \begin{bmatrix}
 \mathbf{D_hourly} & \mathbf{0} \\
 \mathbf{0} & \mathbf{D_{daily}}
 
 \end{bmatrix}
-}
 $$
 
 This allows us to combine any number of individual terms. More terms
@@ -200,7 +192,6 @@ np.round(model_matrix[:3, :10], 2)
             0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00],
            [9.323e+03, 0.000e+00, 3.000e-02, 5.200e-01, 4.400e-01, 1.000e-02,
             0.000e+00, 0.000e+00, 0.000e+00, 0.000e+00]])
-
 
 #### Fitting the Model
 
@@ -300,6 +291,7 @@ cyclic_penalty = np.sqrt(10)
 ## Now our cyclic_penalty is an input instead of an additional step
 hourly_penalty_cyc = add_cyc_penalty(spline_info['hourly']['diff_matr'], cyclic_penalty)
 ```
+
 
 ![](../img/fitting_multiple_splines/cell-17-output-2.png)
 
