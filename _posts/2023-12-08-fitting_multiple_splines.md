@@ -75,7 +75,7 @@ build a 2nd order difference penalty matrix. I’m sure there is a better
 way to do this but I’m just going to keep track of everything in a
 dictionary for each term.
 
-``` python
+```python
 ## n_knots = 26 so there is a knot every other week :shrug:
 spline_info = dict(daily = dict(), hourly = dict())
 spline_info['daily'] = dict(bsplines = SplineTransformer(n_knots = 26).fit_transform(solar_df[['day']]))
