@@ -107,6 +107,7 @@ of the day coefficients, and $\mathbf{D_daily}$ is the penalty matrix for
 the day of the year coefficient then our combined penalty matrix is
 just:
 
+{% raw %}
 $$
 \begin{bmatrix}
 \mathbf{D_hourly} & \mathbf{0} \\
@@ -114,6 +115,7 @@ $$
 
 \end{bmatrix}
 $$
+{% endraw %}
 
 This allows us to combine any number of individual terms. More terms
 will obviously increase the time it takes to fit each model. I would
