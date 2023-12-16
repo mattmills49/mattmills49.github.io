@@ -102,9 +102,7 @@ penalty matrix for a single spline term is simply the inner transpose product
 of this difference matrix, which you can also multiply by a penalty value, 
 $\lambda$, to control the level of smoothness:
 
-$$
-\mathbf{P} = \lambda D^T D
-$$
+$\mathbf{P} = \lambda D^T D$
 
 Now we have multiple spline terms and a linear term instead of a single 
 spline term. How can we combine the difference matrics that we have for 
