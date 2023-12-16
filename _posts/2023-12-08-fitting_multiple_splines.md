@@ -93,31 +93,42 @@ for k, v in spline_info.items():
     Number of Basis Splines for daily feature: 28
     Number of Basis Splines for hourly feature: 14
 
-Next is our combined penalty matrix. When we had one spline term we
-could just pass in the inner transpose product of the difference matrix
-(I’m not sure if that’s the correct term, but the $D^TD$ matrix is what
-I’m referring to). Now we have two spline terms and a simple linear
-term. Since each spline term has its own penalty we can structure the
-full penalty matrix as a “sequence” of individual penalty matrices. So
-the difference matrices will be on the (large) diagonal and the outer
-triangles are filled with zeros. This way each penalty only interacts
-with its own corresponding spline coefficients and no other term’s
-coefficients. If $\mathbf{D_hourly}$ is the penalty matrix for the hours
-of the day coefficients, and $\mathbf{D_daily}$ is the penalty matrix for
-the day of the year coefficient then our combined penalty matrix is
-just:
+Next is our combined penalty matrix. To recap from my last post, the penalty 
+matrix enforces smoothness on the spline coefficients. This acts as a regularizer 
+so that the model doesn't interpolate too much and end up overfitting to the 
+training data. To calculate the penalty matrix we first calculate the difference 
+matrix which tracks the differences between successive spline terms. The 
+penalty matrix for a single spline term is simply the inner transpose product 
+of this difference matrix, which you can also multiply by a penalty value, 
+$\lambda$, to control the level of smoothness:
 
-{% raw %}
+$$
+\mathbf{P} = \lambda D^T D
+$$
+
+Now we have multiple spline terms and a linear term instead of a single 
+spline term. How can we combine the difference matrics that we have for 
+each term into one penalty matrix? We get lucky and actually all we need 
+to do is "stack" our penalty matrices diagonally surrounded by zero 
+matrices. This takes advantage of how the penalty matrix gets included 
+in the loss function that the model optimizes ($\beta^T P \beta$ where 
+$\beta$ is the coefficient vector). This way each penalty only interacts 
+with its own corresponding spline coefficients and no other term's 
+coefficients. If $D_h$ is the difference matrix for the hours of 
+the day coefficients, $D_d$ is the penalty matrix for the day of the 
+year coefficient, and $\lambda_{i}$ is the penalty for each term 
+(including the non-spline terms), then our combined penalty matrix is just:
+
 $$
 \begin{bmatrix}
-\mathbf{D_hourly} & \mathbf{0} \\
-\mathbf{0} & \mathbf{D_{daily}}
+\lambda_1 & \mathbf{0} & \mathbf{0} \\
+\mathbf{0} & \lambda_2 D_{h}^T D_{h} & \mathbf{0} \\
+\mathbf{0} & \mathbf{0} & \lambda_3 D_{d}^T D_{d} 
 
 \end{bmatrix}
 $$
-{% endraw %}
 
-This allows us to combine any number of individual terms. More terms
+This allows us to combine any number of spline terms in one model. More terms
 will obviously increase the time it takes to fit each model. I would
 love to test this further but my hunch is that it actually won’t slow
 down a model fit too much. The reason is that both the model matrix
