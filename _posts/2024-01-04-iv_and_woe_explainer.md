@@ -45,7 +45,10 @@ and bad population using consistent bin edges. Once we have our two
 distributions we can actually get to calculating the IV. The formula for
 WOE and IV is always shown as follows:
 
+
 $$\displaylines{WOE_i = \ln(\frac{good_i}{bad_i}) \\ IV = \sum\_{i=1}^N WOE_i \* (good_i - bad_i)}$$
+
+$\displaylines{WOE_i = \ln(\frac{good_i}{bad_i}) \\ IV = \sum\_{i=1}^N WOE_i \* (good_i - bad_i)}$
 
 
 where $good_i$ and $bad_i$ is the
