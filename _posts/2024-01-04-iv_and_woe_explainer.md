@@ -49,13 +49,13 @@ WOE and IV is always shown as follows:
 $$
 \begin{align}
   WOE_i = \ln(\frac{good_i}{bad_i}) \\ 
-  IV = \sum\_{i=1}^N WOE_i * (good_i - bad_i)
+  IV = \sum_{i=1}^N WOE_i * (good_i - bad_i)
 \end{align}
 $$
 
 \\[
 \begin{equation}
-  WOE_i = \ln(\frac{good_i}{bad_i}) \\ 
+  WOE_i = \ln(\frac{good_i}{bad_i}) \\\\ 
   IV = \sum\_{i=1}^N WOE_i * (good_i - bad_i)
 \end{equation}
 \\]
