@@ -53,7 +53,15 @@ $$\\
 }
 \\$$
 
-$\begin{aligned} & WOE_i = \ln(\frac{good_i}{bad_i}) \\ & IV = \sum\_{i=1}^N WOE_i \* (good_i - bad_i)} \end{aligned}$
+
+\[
+\displaylines{
+  WOE_i = \ln(\frac{good_i}{bad_i}) \\ 
+  IV = \sum\_{i=1}^N WOE_i \* (good_i - bad_i)
+}
+\]
+
+
 
 
 
