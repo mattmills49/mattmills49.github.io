@@ -45,21 +45,10 @@ and bad population using consistent bin edges. Once we have our two
 distributions we can actually get to calculating the IV. The formula for
 WOE and IV is always shown as follows:
 
-
-$$
 \begin{align}
   WOE_i = \ln(\frac{good_i}{bad_i}) \\ 
   IV = \sum_{i=1}^N WOE_i * (good_i - bad_i)
 \end{align}
-$$
-
-\\[
-\begin{equation}
-  WOE_i = \ln(\frac{good_i}{bad_i}) \\\\ 
-  IV = \sum\_{i=1}^N WOE_i * (good_i - bad_i)
-\end{equation}
-\\]
-
 
 where $good_i$ and $bad_i$ is the
 percentage of the overall goods and bads in each feature bin. We can see
@@ -107,14 +96,12 @@ methods:
     $p(bad)_i$ as the percentage of observations in
     each bin that are bad we can see this weighting directly.
 
-$$
-\displaylines{
-bad_i = \frac{n_i \* p(bad)\_i}{n\_{bads}} \\
-good_i = \frac{n_i \* (1 - p(bad)\_i)}{n\_{goods}} \\
-IV = \sum\_{i=1}^N WOE_i \* (\frac{n_i \* (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i \* p(bad)\_i}{n\_{bads}}) \\
-IV = \sum\_{i=1}^N WOE_i \* \frac{n_i}{n\_{goods} \* n\_{bads}} \* (n\_{bads} - p(bad)\_i \* (n\_{bads} + n\_{goods})) 
-}
-$$
+\begin{align}
+bad_i \$= \frac{n_i * p(bad)\_i}{n\_{bads}} \\
+good_i \&= \frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} \\
+IV = \sum_{i=1}^N WOE_i * (\frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i * p(bad)\_i}{n\_{bads}}) \\
+IV = \sum_{i=1}^N WOE_i * \frac{n_i}{n\_{goods} * n\_{bads}} * (n\_{bads} - p(bad)\_i * (n\_{bads} + n\_{goods})) 
+\end{align}
 
 Honestly this last term is quite ugly but it does tell us a few things:
 
