@@ -97,10 +97,10 @@ methods:
     each bin that are bad we can see this weighting directly.
 
 \begin{align}
-bad_i &= \frac{n_i * p(bad)\_i}{n\_{bads}} \\\\
-good_i &= \frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} \\\\
-IV &= \sum_{i=1}^N WOE_i * (\frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i * p(bad)\_i}{n\_{bads}}) \\\\
-IV &= \sum_{i=1}^N WOE_i * \frac{n_i}{n\_{goods} * n\_{bads}} * (n\_{bads} - p(bad)\_i * (n\_{bads} + n\_{goods})) 
+bad_i = \frac{n_i * p(bad)\_i}{n\_{bads}} \\\\
+good_i = \frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} \\\\
+IV = \sum_{i=1}^N WOE_i * (\frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i * p(bad)\_i}{n\_{bads}}) \\\\
+IV = \sum_{i=1}^N WOE_i * \frac{n_i}{n\_{goods} * n\_{bads}} * (n\_{bads} - p(bad)\_i * (n\_{bads} + n\_{goods})) 
 \end{align}
 
 Honestly this last term is quite ugly but it does tell us a few things:
@@ -246,21 +246,21 @@ change any outcomes.
 
 ### Calculations in Python
 
-I have put together a python file that can perform the full gamut of
+I have put together a [python file](https://github.com/mattmills49/Blog-Posts/blob/main/woe/woe.py) that can perform the full gamut of
 actions needed to find WOE and IV for both numeric and categorical
 features on my personal github. Here I will just show the code to
 calculate the individual WOE and IV statistics since that was the focus
-of the blog and to keep it short. You can view the full code here.
+of the blog and to keep it short. You can view the full code [here](https://github.com/mattmills49/Blog-Posts/blob/main/woe/woe.py).
 
 ``` python
-def calc_woe(df, feature_col, dv_col, min_obs = 1, **bin_args):
+def calc_woe(df, feature_col, dv_col, constant = 1e-3, **bin_args):
     '''
     Calculate the WOE and IVs for the categories of the feature
     
     :param df: The dataframe containing the columns to use
     :param feature_col: The name of the column that contains the feature values
     :param dv_col: The name of the column that contains the dependent variable
-    :param min_obs: The amount to add to each numerator and denominator when
+    :param constant: The amount to add to each numerator and denominator when
                     calculating the percent of overall goods and bads to avoid
                     taking logs of 0
     '''
