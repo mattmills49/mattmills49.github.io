@@ -97,10 +97,10 @@ methods:
     each bin that are bad we can see this weighting directly.
 
 \begin{align}
-bad_i = \frac{n_i * p(bad)\_i}{n\_{bads}} \\\\
-good_i = \frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} \\\\
-IV = \sum_{i=1}^N WOE_i * (\frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i * p(bad)\_i}{n\_{bads}}) \\\\
-IV = \sum_{i=1}^N WOE_i * \frac{n_i}{n\_{goods} * n\_{bads}} * (n\_{bads} - p(bad)\_i * (n\_{bads} + n\_{goods})) 
+  bad_i = \frac{n_i * p(bad)\_i}{n\_{bads}} \\\\
+  good_i = \frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} \\\\
+  IV = \sum_{i=1}^N WOE_i * (\frac{n_i * (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i * p(bad)\_i}{n\_{bads}}) \\\\
+  IV = \sum_{i=1}^N WOE_i * \frac{n_i}{n\_{goods} * n\_{bads}} * (n\_{bads} - p(bad)\_i * (n\_{bads} + n\_{goods})) 
 \end{align}
 
 Honestly this last term is quite ugly but it does tell us a few things:
