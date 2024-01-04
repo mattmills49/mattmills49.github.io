@@ -45,13 +45,15 @@ and bad population using consistent bin edges. Once we have our two
 distributions we can actually get to calculating the IV. The formula for
 WOE and IV is always shown as follows:
 
+::: {.hidden}
 $$\displaylines{
     WOE_i = \ln(\frac{good_i}{bad_i}) \\
     IV = \sum\_{i=1}^N WOE_i \* (good_i - bad_i)
 }
 $$
+:::
 
-where *g**o**o**d*<sub>*i*</sub> and *b**a**d*<sub>*i*</sub> is the
+where $good_i$ and $bad_i$ is the
 percentage of the overall goods and bads in each feature bin. We can see
 this visually from our previous example with another poorly drawn
 picture:
@@ -65,7 +67,7 @@ in the two probability distributions.
 
 If a feature bin has the same percentage of overall goods and bads
 (e.g. the lowest bin contains 25% of the overall goods and 25% of the
-overall bads) then that bin will have a WOE of 0 (*l**n*(1) = 0). If a
+overall bads) then that bin will have a WOE of 0 ($\ln(1) = 0$). If a
 feature has no seperation of goods and bads in any bin then the overall
 Information Value is also 0; the feature has no predictive power using
 this measure.
@@ -91,13 +93,14 @@ methods:
     we can essentially treat the term for the difference in the
     percentage of goods and bads in a group as a “weight” on the WOE. If
     we rewrite our formula from before that used
-    *g**o**o**d*<sub>*i*</sub> and *b**a**d*<sub>*i*</sub> as the
+    $good_i$ and $bad_i$ as the
     overall percentage of each label in the bin to now use the number of
-    observations in each bin, *n*<sub>*i*</sub>, and the bin specific
-    *p*(*b**a**d*)<sub>*i*</sub> as the percentage of observations in
+    observations in each bin, $n_i$, and the bin specific
+    $p(bad)_i$ as the percentage of observations in
     each bin that are bad we can see this weighting directly.
 
-$$\displaylines{
+$$
+\displaylines{
 bad_i = \frac{n_i \* p(bad)\_i}{n\_{bads}} \\
 good_i = \frac{n_i \* (1 - p(bad)\_i)}{n\_{goods}} \\
 IV = \sum\_{i=1}^N WOE_i \* (\frac{n_i \* (1 - p(bad)\_i)}{n\_{goods}} - \frac{n_i \* p(bad)\_i}{n\_{bads}}) \\
@@ -107,12 +110,12 @@ $$
 
 Honestly this last term is quite ugly but it does tell us a few things:
 
-1.  As the size of the bucket, *n*<sub>*i*</sub>, decreases the
+1.  As the size of the bucket, $n_i$, decreases the
     information value contribution for this bin also decreases
 2.  The information value for a feature is influenced by how balanced
     the overall labels are but an individual bin’s IV only changes with
     the number of obs in the bin and how large or small the
-    *p*(*b**a**d*)<sub>*i*</sub> term is
+    $p(bad)_i$ term is
 
 We can also calculate an example directly to see the different
 contributions of four hypothetical categories; 2 rare categories and 2
