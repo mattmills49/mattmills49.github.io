@@ -1,0 +1,9 @@
+# Estimating the Cost for Rooftop Solar in Dekalb County
+
+I was inspired by some 
+
+The size of Chamblee High School is 125k sq ft. A 500W solar panel is estimated to be 27.5 sq ft. If we conservatively assume that we can only dedicate 25% of the roof to rooftop solar then we can fit a 1136 panel array. Since each panel is 500W this would have a capacity of 568kW. Georgia Solar is rated as getting an average of 4.74 sun hours per day year round. This gives us a total power generated of ~982MWh. That is enough to completely power 98 homes for the year. This system would cost $1.7m using an estimate of $3.00/W. However, utility scale solar is close to $1.00/W; By purchasing at scale and cheaper financing for the county $3.00 is certainly an upper estimate. DeKalb County collected $775m in tax revenue in 2022. So for 0.25% of our annual budget we could provide carbon-free energy to our homes and then reduce our energy costs for operating CHS. Or to put it another way there are $284k households in DeKalb County; if DeKalb County sold $100 bonds to pay for the cost of install we would only need 8% of households in the county to purchase a bond. 
+
+At current energy prices of $0.14/kWh this would save $138k per year in energy savings, so this project would take 12.5 years to pay back. However the array would surely produce more energy than it consumes during the day. I can't get an estimate for the power usage of high schools but any extra power generated could be sold back to Georgia Power at the net metering rate of $0.06/kWh. This would reduce the payback time even further. 
+
+Ideally we would also install batteries to sell any excess power back in the evening as the sun is setting when the grid needs it most. 
