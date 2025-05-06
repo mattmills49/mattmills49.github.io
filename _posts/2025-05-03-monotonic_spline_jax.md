@@ -56,9 +56,9 @@ example a monotonically increasing function.
 How do we do this reparameterization? A traditional B-spline can be
 expressed as
 
-$$
+\[
 \hat{Y} = \mathbf{X}\mathbf{\beta}
-$$
+\]
 
 Where $\mathbf{X}$ is the $n$ by $j$ spline-transformed data matrix and
 $\mathbf{\beta}$ are the $j$ coefficients found from fitting a model to
@@ -66,17 +66,19 @@ the data. If we don't impose any constraints or penalties this could
 just be fit as a standard GLM. But now we want to force the curve to
 either always go up, or always go down.
 
-This new expression of the B-spline basis has two components: 1. A
+This new expression of the B-spline basis has two components: 
+1. A
 transformation on the coefficients of a traditional B-spline to ensure
-they are always positive 2. A constraint matrix inserted in the
+they are always positive 
+2. A constraint matrix inserted in the
 $\mathbf{X} \mathbf{\beta}$ multiplication.
 
 The first step of the reparameterization is simple enough, we apply the
 exponential function to our unconstrained coefficients:
 
-$$
+\[
 \tilde{\beta} = \exp(\beta)
-$$
+\]
 
 Now each transformed coefficient is stricly positive. We'll see the
 reason for this below.
@@ -91,9 +93,9 @@ by applying another reparameterization to our coefficients. Lets set the
 first coefficient in our new coefficient vector $\overline{\beta}$ as
 our first stricly positive coefficient:
 
-$$
+\[
 \overline{\beta_1} = \tilde{\beta_1}
-$$
+\]
 
 The next coefficient now needs to be less than this first value. One way
 to do that is to subtract our $\tilde{\beta_2}$ value from
@@ -104,12 +106,14 @@ $\tilde{\beta_1} - \tilde{\beta_2}$. We can repeat this logic the whole
 way down our vector of coefficients:
 
 {::nomarkdown}
+\begin{array}{cc}
 \begin{equation}
 \overline{\beta_1} = \tilde{\beta_1} \\
 \overline{\beta_2} = \tilde{\beta_1} - \tilde{\beta_2} \\
 \overline{\beta_3} = \tilde{\beta_1} - \tilde{\beta_2} - \tilde{\beta_3} \\
 \dots
 \end{equation}
+\end{array}{cc}
 {:/nomarkdown}
 
 We don't have to write these equations out by hand, we can leverage a
@@ -117,6 +121,7 @@ lower triangle matrix where all values are negative 1 except the first
 column.
 
 {::nomarkdown}
+\begin{array}{cc}
 \mathbf{\overline{\beta}} =
 \begin{bmatrix}
 1 & 0 & 0 & 0 \\
@@ -125,15 +130,16 @@ column.
 1 & -1 & -1 & -1 \\
 \end{bmatrix}
 \mathbf{\tilde{\beta}}
+\end{array}{cc}
 {:/nomarkdown}
 
 The SCAM paper doesn't create this 2nd intermediate coefficient vector
 $\mathbf{\overline{\beta}}$ but instead just includes the constraint
 matrix $\mathbf{Sigma}$ in the prediction matrix multiplication:
 
-$$
+\[
 \hat{Y} = \mathbf{X} \mathbf{\Sigma} \mathbf{\tilde{\beta}}
-$$
+\]
 
 To summarize the process we first start with unconstrained coefficients
 that we transform into positive numbers. Then we combine them in a way
@@ -175,7 +181,7 @@ only goes one way. We'll read in some data and build our model. I'm only
 going to show some code cells and output, but if you want to see the
 full code it is available on my github.
 
-``` {.python .cell-code}
+```
 flower_df = pl.read_csv(FLOWER_DATA, truncate_ragged_lines=True)
 flower_df.columns = ['year', 'flower_doy', 'flower_date', 'source', 'ref']
 flower_df_clean = flower_df.filter(pl.col('flower_doy').is_not_null())
@@ -196,7 +202,7 @@ print(flower_df_clean.head().to_pandas().to_markdown(index=False))
        853           104             414          1 MONTOKUTENNO-JITSUROKU
   --------------------------------------------------------------------------
 
-``` {.python .cell-code}
+```
 # calc splines
 yearly_spline = SplineTransformer(n_knots = 50, include_bias = True).fit_transform(flower_df_clean[['year']])
 #yearly_spline = np.concat([np.ones((yearly_spline.shape[0], 1)),yearly_spline], axis=1)
@@ -208,7 +214,7 @@ flower_df_clean = flower_df_clean.with_columns(base_preds = base_model.predict(y
 
 ![](/img/monotonic_spline_jax/cell-8-output-1.png)
 
-``` {.python .cell-code}
+```
 def generate_constraint_matrix(coefs, direction='dec'):
     '''Generate a constraint matrix for a monotonic function. 
     
@@ -241,7 +247,7 @@ cons_matrix[:5, :5]
            [ 1., -1., -1., -1.,  0.],
            [ 1., -1., -1., -1., -1.]])
 
-``` {.python .cell-code}
+```
 def apply_shape_constraint(coef_b, direction='dec'):
     """
     Applies shape constraints to the coefficient vector, excluding the intercept.
@@ -259,9 +265,9 @@ print(f'Latent Coefficients: {np.round(test_coefs, 2)}\n')
 print(f'Constrained Coefficients: {np.round(mono_coefs, 2)}')
 ```
 
-Latent Coefficients: \[0.81 0.08 0.37 0.3 0.17\]
+Latent Coefficients: [0.81 0.08 0.37 0.3 0.17]
 
-Constrained Coefficients: \[ 2.24 1.16 -0.29 -1.64 -2.83\]
+Constrained Coefficients: [ 2.24 1.16 -0.29 -1.64 -2.83]
 
 ### Fitting a Model with JAX
 
@@ -285,7 +291,7 @@ them. Then we (well really scipy) apply the necessary transformations at
 each run after applying the necessary gradient updates to the raw
 paramter values.
 
-``` {.python .cell-code}
+```
 def predict_mono_bspline(coefs, X=yearly_spline, direction='dec'):
     """
     Predicts values from a monotonic B-spline model without an intercept.
@@ -316,7 +322,7 @@ loss_hess = jax.hessian(calc_loss)
 
 Now we have what we need to fit our model!
 
-``` {.python .cell-code}
+```
 coefs = base_model.coef_
 
 gs = loss_grad(coefs)
