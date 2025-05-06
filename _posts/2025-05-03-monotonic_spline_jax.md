@@ -44,9 +44,9 @@ each basis that are learned from the data while estimating some trend.
 ![](/img/monotonic_spline_jax/cell-3-output-1.png)
 
 When we add learned coefficients for each spline we are fitting a model
-$\hat{Y} = \mathbf{X}\mathbf{\beta}$:
+$\hat{Y} = \mathbf{X}\mathbf{\beta}$ :
 
-![](.img/monotonic_spline_jax/cell-4-output-1.png)
+![](/img/monotonic_spline_jax/cell-4-output-1.png)
 
 With a reparameterization we can model trends with a specific shape, for
 example a monotonically increasing function.
@@ -181,7 +181,7 @@ only goes one way. We'll read in some data and build our model. I'm only
 going to show some code cells and output, but if you want to see the
 full code it is available on my github.
 
-```
+``` python
 flower_df = pl.read_csv(FLOWER_DATA, truncate_ragged_lines=True)
 flower_df.columns = ['year', 'flower_doy', 'flower_date', 'source', 'ref']
 flower_df_clean = flower_df.filter(pl.col('flower_doy').is_not_null())
