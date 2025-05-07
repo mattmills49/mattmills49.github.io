@@ -19,7 +19,8 @@ Penalized splines (P-splines) and Shape Constrained P-Splines
 (SCOP). This contraint could be an always increasing or decreasing
 function, or even a convex or concave shape. P-splines use a penalty
 matrix to enfore the constraint by penalizing differences between
-neighboring coefficients. SCOPs, and sometimes the more general term 
+neighboring coefficients that violate the desired trend. SCOPs, and 
+sometimes the more general term 
 Shape Constrained Additive Models (SCAM), use a different parameterization of a
 GAM that I wanted to learn more about. This blog post is an attempt to
 recreate the logic in the [SCAM
@@ -106,14 +107,12 @@ $\tilde{\beta_1} - \tilde{\beta_2}$. We can repeat this logic the whole
 way down our vector of coefficients:
 
 {::nomarkdown}
-\begin{array}{cc}
-\begin{equation}
-\overline{\beta_1} = \tilde{\beta_1} \\
-\overline{\beta_2} = \tilde{\beta_1} - \tilde{\beta_2} \\
-\overline{\beta_3} = \tilde{\beta_1} - \tilde{\beta_2} - \tilde{\beta_3} \\
+\begin{align}
+\overline{\beta_1} &= \tilde{\beta_1} \\
+\overline{\beta_2} &= \tilde{\beta_1} - \tilde{\beta_2} \\
+\overline{\beta_3} &= \tilde{\beta_1} - \tilde{\beta_2} - \tilde{\beta_3} \\
 \dots
-\end{equation}
-\end{array}
+\end{align}
 {:/nomarkdown}
 
 We don't have to write these equations out by hand, we can leverage a
