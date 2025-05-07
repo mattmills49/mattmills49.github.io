@@ -4,6 +4,8 @@ title: How to Fit Monotonic Smooths in JAX using Shape Constrained P-Splines
 math: true
 image: /img/monotonic_spline_jax/cell-14-output-1.png
 share-img: /img/monotonic_spline_jax/cell-14-output-1.png
+date: 2025-05-03
+show_image: true
 ---
 
 Let's say you have a trend you are trying to model that you know to be
@@ -146,6 +148,10 @@ so that the resulting coefficients on each input column in $\mathbf{X}$
 are decreasing as we move along the coefficients. Then we multiply those
 values by the basis matrix to generate our predictions.
 
+Different constraint matrices result in different shapes; you can view the
+constraint matrices for convex, concave, and many other shapes in the SCAM
+paper.
+
 ### Comparison with P-splines
 
 P-splines enforce a monotonic constraint using a penalty matrix instead
@@ -264,9 +270,9 @@ print(f'Latent Coefficients: {np.round(test_coefs, 2)}\n')
 print(f'Constrained Coefficients: {np.round(mono_coefs, 2)}')
 ```
 
-Latent Coefficients: [0.81 0.08 0.37 0.3 0.17]
+Latent Coefficients: `[0.81 0.08 0.37 0.3 0.17]`
 
-Constrained Coefficients: [ 2.24 1.16 -0.29 -1.64 -2.83]
+Constrained Coefficients: `[2.24 1.16 -0.29 -1.64 -2.83]`
 
 ### Fitting a Model with JAX
 
