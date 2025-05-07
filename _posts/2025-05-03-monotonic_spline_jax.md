@@ -184,7 +184,7 @@ year fluctuations will not be monotonically decreasing. For this post
 I'm only interested in the long-term trend which I'm going to assume
 only goes one way. We'll read in some data and build our model. I'm only
 going to show some code cells and output, but if you want to see the
-full code it is available on my github.
+full code it is available on my [github](https://github.com/mattmills49/Blog-Posts/blob/fha_post1/glum_splines/monotonic_spline_jax.ipynb).
 
 ``` python
 flower_df = pl.read_csv(FLOWER_DATA, truncate_ragged_lines=True)
