@@ -1,7 +1,6 @@
 ---
 layout: post
-title: How to Fit Monotonic Smooths in JAX using Shape Constrained Additive
-  Models
+title: How to Fit Monotonic Smooths in JAX using Shape Constrained P-Splines
 math: true
 image: /img/monotonic_spline_jax/cell-14-output-1.png
 share-img: /img/monotonic_spline_jax/cell-14-output-1.png
@@ -16,11 +15,12 @@ Models](http://statmills.com/2023-11-20-Penalized_Splines_Using_glum/)
 model these relationships, but they are unconstrained and could have
 undesired shape behavior. It turns out that there are variations of GAMs
 that allow for enforcing a constraint on a spline curve;
-Penalized-splines (P-splines) and Shape Constrained Additive Models
-(SCAM). This contraint could be an always increasing or decreasing
+Penalized splines (P-splines) and Shape Constrained P-Splines
+(SCOP). This contraint could be an always increasing or decreasing
 function, or even a convex or concave shape. P-splines use a penalty
 matrix to enfore the constraint by penalizing differences between
-neighboring coefficients. SCAMs use a different parameterization of a
+neighboring coefficients. SCOPs, and sometimes the more general term 
+Shape Constrained Additive Models (SCAM), use a different parameterization of a
 GAM that I wanted to learn more about. This blog post is an attempt to
 recreate the logic in the [SCAM
 paper](https://www.researchgate.net/publication/271740857_Shape_constrained_additive_models)
@@ -113,7 +113,7 @@ way down our vector of coefficients:
 \overline{\beta_3} = \tilde{\beta_1} - \tilde{\beta_2} - \tilde{\beta_3} \\
 \dots
 \end{equation}
-\end{array}{cc}
+\end{array}
 {:/nomarkdown}
 
 We don't have to write these equations out by hand, we can leverage a
@@ -130,7 +130,7 @@ column.
 1 & -1 & -1 & -1 \\
 \end{bmatrix}
 \mathbf{\tilde{\beta}}
-\end{array}{cc}
+\end{array}
 {:/nomarkdown}
 
 The SCAM paper doesn't create this 2nd intermediate coefficient vector
