@@ -202,7 +202,7 @@ print(flower_df_clean.head().to_pandas().to_markdown(index=False))
        853           104             414          1 MONTOKUTENNO-JITSUROKU
   --------------------------------------------------------------------------
 
-```
+``` python
 # calc splines
 yearly_spline = SplineTransformer(n_knots = 50, include_bias = True).fit_transform(flower_df_clean[['year']])
 #yearly_spline = np.concat([np.ones((yearly_spline.shape[0], 1)),yearly_spline], axis=1)
@@ -214,7 +214,7 @@ flower_df_clean = flower_df_clean.with_columns(base_preds = base_model.predict(y
 
 ![](/img/monotonic_spline_jax/cell-8-output-1.png)
 
-```
+``` python
 def generate_constraint_matrix(coefs, direction='dec'):
     '''Generate a constraint matrix for a monotonic function. 
     
@@ -247,7 +247,7 @@ cons_matrix[:5, :5]
            [ 1., -1., -1., -1.,  0.],
            [ 1., -1., -1., -1., -1.]])
 
-```
+``` python
 def apply_shape_constraint(coef_b, direction='dec'):
     """
     Applies shape constraints to the coefficient vector, excluding the intercept.
@@ -291,7 +291,7 @@ them. Then we (well really scipy) apply the necessary transformations at
 each run after applying the necessary gradient updates to the raw
 paramter values.
 
-```
+``` python
 def predict_mono_bspline(coefs, X=yearly_spline, direction='dec'):
     """
     Predicts values from a monotonic B-spline model without an intercept.
@@ -322,7 +322,7 @@ loss_hess = jax.hessian(calc_loss)
 
 Now we have what we need to fit our model!
 
-```
+``` python
 coefs = base_model.coef_
 
 gs = loss_grad(coefs)
