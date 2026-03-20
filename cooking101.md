@@ -4,7 +4,7 @@ title: Cooking 101
 subtitle: An Adulting Day Presentation
 ---
 
-[Slides](https://docs.google.com/presentation/d/1JdoFEyct82GUWJNsNVPcisWxKCK3IHmCxerIKgocfH0/edit?usp=sharing)
+[Link to the Google Slides](https://docs.google.com/presentation/d/1JdoFEyct82GUWJNsNVPcisWxKCK3IHmCxerIKgocfH0/edit?usp=sharing)
 
 # Healthy DIY Bowls
 
