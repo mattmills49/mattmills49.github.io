@@ -28,6 +28,6 @@ The `{assertr}` [R Package](https://github.com/tonyfischetti/assertr) comes to m
 That’s all I’ve got; make the LLM write tests that check the underlying data, not check the code. And sure, it could be any week that Opus-4.8 makes this distinction moot. But while we still have a job doing what we enjoy then maybe this framework will help you design your own safeguards and checks.
 
 
-*Humanity Oath: I solemnly swear that I did use AI to write the words in this piece.*
+*Humanity Oath: I solemnly swear that I did not use AI to write the words in this piece.*
 
 
