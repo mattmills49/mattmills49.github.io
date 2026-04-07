@@ -120,19 +120,25 @@ In our example we will calculate our parameter vectors $\theta$ for an
 observation $x$ at any iteration $m-1$ as the sum of all the individual
 predictions from our base learners $f_m(x)$
 
-$$\hat{\theta}_{m-1} = \sum_{i \in m-1} f_{m-1}(x)$$
+\[
+\hat{\theta}_{m-1} = \sum_{i \in m-1} f_{m-1}(x)
+\]
 
 The base learners are models learned to predict the gradients of these
 parameters against our loss function
 
-$$f_m(x) \sim \nabla L(y, \hat{\theta}_{m-1})$$
+\[
+f_m(x) \sim \nabla L(y, \hat{\theta}_{m-1})
+\]
 
 In our example we need one extra step. If $b(\theta, x)$ is an
 individual model that generates predictions for a set of parameters
 $\theta$ and an observation $x$ then we calculate the gradients by how
 well the predictions from $b(\theta, x)$ predict our loss function $L$:
 
-$$\nabla L(y_i, b(\theta_{m-1}, x_i))$$
+\[
+\nabla L(y_i, b(\theta_{m-1}, x_i))
+\]
 
 Then our decision tree will use $-g_{\theta}$ as the multi-target outputs
 and we can fit a decision tree to these targets. Since we have multiple
@@ -141,7 +147,9 @@ make predictions for each dimension.
 
 And our updates to our fitted parameters are
 
-$$\hat{\theta}_{m} = \hat{\theta}_{m-1} + \alpha * f_m(x)$$
+\[
+\hat{\theta}_{m} = \hat{\theta}_{m-1} + \alpha \cdot f_m(x)
+\]
 
 Let's ease into this by mimicking what the tree splitting algorithm does
 to find optimal splits but with our parameters; coefficients for a
