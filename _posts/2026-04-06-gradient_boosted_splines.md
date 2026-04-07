@@ -62,8 +62,7 @@ day and apply them to the 24-hour range. If I was using a traditional
 GBM I would use the `ride_hour` as a feature and predict the hourly
 counts.
 
-```text
-shape: (5, 9)
+
   dow   woy   year   high_temp   low_temp   precip      ride_date    ride_hour          ride_count
   ----- ----- ------ ----------- ---------- ----------- ------------ ------------------ --------------------------
   i8    i8    i32    f64         f64        f64         date         array[i64, 24]     array[u32, 24]
@@ -73,7 +72,6 @@ shape: (5, 9)
   5     26    2025   64.04       73.94      0.0787402   2025-06-27   [0, 1, ... 23]     [2791, 1683, ... 5395]
   3     34    2024   59.0        75.02      0.0         2024-08-21   [0, 1, ... 23]     [1744, 903, ... 3445]
 
-```
 
 Let's use this data to fit a traditional GBM on the hourly data and
 visualize some results.
