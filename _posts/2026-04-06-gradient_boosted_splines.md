@@ -2,6 +2,7 @@
 layout: post
 title: Gradient Boosting Parameters
 math: true
+image: /img/gbs/tree_spline.png
 share-img: /img/gbs/tree_spline.png
 show_image: true
 ---
