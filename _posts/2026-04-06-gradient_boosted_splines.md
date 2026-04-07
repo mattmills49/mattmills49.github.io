@@ -45,18 +45,6 @@ learn the coefficients for a spline function.
 
 ![](/img/gbs/tree_spline.png)
 
-```text
-shape: (5, 7)
-  hour_start            ride_date    ride_hour   ride_count   weather_tmin_c   weather_tmax_c   weather_prcp_mm
-  --------------------- ------------ ----------- ------------ ---------------- ---------------- -----------------
-  datetime[μs]          date         i64         u32          f64              f64              f64
-  2022-01-01 00:00:00   2022-01-01   0           1246         10.0             13.9             19.3
-  2022-01-01 01:00:00   2022-01-01   1           1379         10.0             13.9             19.3
-  2022-01-01 02:00:00   2022-01-01   2           1141         10.0             13.9             19.3
-  2022-01-01 03:00:00   2022-01-01   3           578          10.0             13.9             19.3
-  2022-01-01 04:00:00   2022-01-01   4           323          10.0             13.9             19.3
-
-```
 
 ### The Data
 
@@ -267,8 +255,6 @@ that operates on a single observation. Jax will then calculate the
 partial derivatives automatically with `grad`. And we can scale this to an
 array with the `vmap` function.
 
-    (34368, 14)
-    (1432, 24, 14)
 
 ```python
 def loss_i(coefs, bs_array, y_array):
@@ -447,7 +433,7 @@ Let's compare our fitted Gradient Boosted Spline to our initial GBM. The
 model is still undershooting the peaks and misses something about the
 January 1st day (I should probably add a `Is_Holiday` feature). But we
 get smooth curves! From Gradient Boosting! It's amazing that this
-approach can be so accomplished so easily with code by leveraging open
+approach can be accomplished so easily with code by leveraging open
 source tools like Jax and Scikit-Learn. All you need is a loss function
 and a way to express individual predictions from a set of parameters and
 you can fit any model this way.
