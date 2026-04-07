@@ -62,16 +62,14 @@ day and apply them to the 24-hour range. If I was using a traditional
 GBM I would use the `ride_hour` as a feature and predict the hourly
 counts.
 
-
-  dow   woy   year   high_temp   low_temp   precip      ride_date    ride_hour          ride_count
-  ----- ----- ------ ----------- ---------- ----------- ------------ ------------------ --------------------------
-  i8    i8    i32    f64         f64        f64         date         array[i64, 24]     array[u32, 24]
-  5     38    2022   51.98       64.04      0.0         2022-09-23   [0, 1, ... 23]     [1458, 782, ... 2465]
-  1     3     2023   30.2        48.02      0.0         2023-01-16   [0, 1, ... 23]     [564, 318, ... 827]
-  4     34    2024   62.06       77.0       0.0         2024-08-22   [0, 1, ... 23]     [1840, 999, ... 4037]
-  5     26    2025   64.04       73.94      0.0787402   2025-06-27   [0, 1, ... 23]     [2791, 1683, ... 5395]
-  3     34    2024   59.0        75.02      0.0         2024-08-21   [0, 1, ... 23]     [1744, 903, ... 3445]
-
+| dow | woy | year | high_temp | low_temp | precip | ride_date | ride_hour | ride_count |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| i8 | i8 | i32 | f64 | f64 | f64 | date | array\[i64, 24\] | array\[u32, 24\] |
+| 5 | 38 | 2022 | 51.98 | 64.04 | 0.0 | 2022-09-23 | \[0, 1, ... 23\] | \[1458, 782, ... 2465\] |
+| 1 | 3 | 2023 | 30.2 | 48.02 | 0.0 | 2023-01-16 | \[0, 1, ... 23\] | \[564, 318, ... 827\] |
+| 4 | 34 | 2024 | 62.06 | 77.0 | 0.0 | 2024-08-22 | \[0, 1, ... 23\] | \[1840, 999, ... 4037\] |
+| 5 | 26 | 2025 | 64.04 | 73.94 | 0.0787402 | 2025-06-27 | \[0, 1, ... 23\] | \[2791, 1683, ... 5395\] |
+| 3 | 34 | 2024 | 59.0 | 75.02 | 0.0 | 2024-08-21 | \[0, 1, ... 23\] | \[1744, 903, ... 3445\] |
 
 Let's use this data to fit a traditional GBM on the hourly data and
 visualize some results.
@@ -120,25 +118,31 @@ In our example we will calculate our parameter vectors $\theta$ for an
 observation $x$ at any iteration $m-1$ as the sum of all the individual
 predictions from our base learners $f_m(x)$
 
+{::nomarkdown}
 \[
 \hat{\theta}_{m-1} = \sum_{i \in m-1} f_{m-1}(x)
 \]
+{:/nomarkdown}
 
 The base learners are models learned to predict the gradients of these
 parameters against our loss function
 
+{::nomarkdown}
 \[
 f_m(x) \sim \nabla L(y, \hat{\theta}_{m-1})
 \]
+{:/nomarkdown}
 
 In our example we need one extra step. If $b(\theta, x)$ is an
 individual model that generates predictions for a set of parameters
 $\theta$ and an observation $x$ then we calculate the gradients by how
 well the predictions from $b(\theta, x)$ predict our loss function $L$:
 
+{::nomarkdown}
 \[
 \nabla L(y_i, b(\theta_{m-1}, x_i))
 \]
+{:/nomarkdown}
 
 Then our decision tree will use $-g_{\theta}$ as the multi-target outputs
 and we can fit a decision tree to these targets. Since we have multiple
@@ -147,9 +151,11 @@ make predictions for each dimension.
 
 And our updates to our fitted parameters are
 
+{::nomarkdown}
 \[
 \hat{\theta}_{m} = \hat{\theta}_{m-1} + \alpha \cdot f_m(x)
 \]
+{:/nomarkdown}
 
 Let's ease into this by mimicking what the tree splitting algorithm does
 to find optimal splits but with our parameters; coefficients for a
