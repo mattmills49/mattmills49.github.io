@@ -1,10 +1,9 @@
 ---
-execute:
-  echo: false
-  fig-dpi: 200
-  warning: false
+layout: post
 title: Gradient Boosting Parameters
-toc-title: Table of contents
+math: true
+share-img: /img/gbs/tree_spline.png
+show_image: true
 ---
 
 In this post I'll walk through how you can use the same principles
@@ -27,12 +26,10 @@ decision trees; each successive tree attempts to improve the predictions
 from the set of previous trees. It (generally, there are many GBM
 implementations out there now) does this with two steps:
 
-1. Before
-fitting a new tree calculate the gradient of the loss function we are
-minimizing at each observation 
-2. Fit a new decision tree that
-predicts\^\* this gradient and then add this prediction to the previous
-predictions.
+1. Before fitting a new tree calculate the gradient of the loss function we are
+   minimizing at each observation.
+2. Fit a new decision tree that predicts the gradient and then add this
+   prediction to the previous predictions.
 
 *(\*) technically fit the negative gradient, we want the loss to go
 down*
@@ -44,37 +41,22 @@ classification. This post started as a walkthrough of that technique,
 but I ended up trying something I've always had an idea for first; can
 we use a GBM to fit distributions, not just make individual predictions?
 To test this I am going to walk through using Gradient Boosting to
-learn the coefficients for a spline function. We will use the Citi Bike
-Dataset to model the number of hourly rides over the course of a day.
+learn the coefficients for a spline function.
 
-\[chart_that_shows_splines\]
+![](/img/gbs/tree_spline.png)
 
-::: {.cell execution_count="3"}
-::: {.cell-output .cell-output-display execution_count="16"}
-```{=html}
-<div><style>
-.dataframe > thead > tr,
-.dataframe > tbody > tr {
-  text-align: right;
-  white-space: pre-wrap;
-}
-</style>
-<small>shape: (5, 7)</small>
-```
+```text
+shape: (5, 7)
   hour_start            ride_date    ride_hour   ride_count   weather_tmin_c   weather_tmax_c   weather_prcp_mm
   --------------------- ------------ ----------- ------------ ---------------- ---------------- -----------------
-  datetime\[μs\]        date         i64         u32          f64              f64              f64
+  datetime[μs]          date         i64         u32          f64              f64              f64
   2022-01-01 00:00:00   2022-01-01   0           1246         10.0             13.9             19.3
   2022-01-01 01:00:00   2022-01-01   1           1379         10.0             13.9             19.3
   2022-01-01 02:00:00   2022-01-01   2           1141         10.0             13.9             19.3
   2022-01-01 03:00:00   2022-01-01   3           578          10.0             13.9             19.3
   2022-01-01 04:00:00   2022-01-01   4           323          10.0             13.9             19.3
 
-```{=html}
-</div>
 ```
-:::
-:::
 
 ### The Data
 
@@ -91,38 +73,23 @@ day and apply them to the 24-hour range. If I was using a traditional
 GBM I would use the `ride_hour` as a feature and predict the hourly
 counts.
 
-::: {.cell execution_count="6"}
-::: {.cell-output .cell-output-display execution_count="19"}
-```{=html}
-<div><style>
-.dataframe > thead > tr,
-.dataframe > tbody > tr {
-  text-align: right;
-  white-space: pre-wrap;
-}
-</style>
-<small>shape: (5, 9)</small>
-```
+```text
+shape: (5, 9)
   dow   woy   year   high_temp   low_temp   precip      ride_date    ride_hour          ride_count
   ----- ----- ------ ----------- ---------- ----------- ------------ ------------------ --------------------------
-  i8    i8    i32    f64         f64        f64         date         array\[i64, 24\]   array\[u32, 24\]
-  5     38    2022   51.98       64.04      0.0         2022-09-23   \[0, 1, ... 23\]   \[1458, 782, ... 2465\]
-  1     3     2023   30.2        48.02      0.0         2023-01-16   \[0, 1, ... 23\]   \[564, 318, ... 827\]
-  4     34    2024   62.06       77.0       0.0         2024-08-22   \[0, 1, ... 23\]   \[1840, 999, ... 4037\]
-  5     26    2025   64.04       73.94      0.0787402   2025-06-27   \[0, 1, ... 23\]   \[2791, 1683, ... 5395\]
-  3     34    2024   59.0        75.02      0.0         2024-08-21   \[0, 1, ... 23\]   \[1744, 903, ... 3445\]
+  i8    i8    i32    f64         f64        f64         date         array[i64, 24]     array[u32, 24]
+  5     38    2022   51.98       64.04      0.0         2022-09-23   [0, 1, ... 23]     [1458, 782, ... 2465]
+  1     3     2023   30.2        48.02      0.0         2023-01-16   [0, 1, ... 23]     [564, 318, ... 827]
+  4     34    2024   62.06       77.0       0.0         2024-08-22   [0, 1, ... 23]     [1840, 999, ... 4037]
+  5     26    2025   64.04       73.94      0.0787402   2025-06-27   [0, 1, ... 23]     [2791, 1683, ... 5395]
+  3     34    2024   59.0        75.02      0.0         2024-08-21   [0, 1, ... 23]     [1744, 903, ... 3445]
 
-```{=html}
-</div>
 ```
-:::
-:::
 
 Let's use this data to fit a traditional GBM on the hourly data and
 visualize some results.
 
-::: {.cell execution_count="7"}
-``` {.python .cell-code}
+```python
 hourly_df = hourly_df.join(zero_days_df, how='anti', on='ride_date')
 
 X_hourly = hourly_df[FEATURE_COLS + ['ride_hour']].to_numpy()
@@ -133,8 +100,6 @@ hourly_gbm = GradientBoostingRegressor(min_samples_leaf=4, validation_fraction=0
 hourly_gbm.fit(X_hourly, y_hourly_log)
 ```
 
-::: {.cell execution_count="8"}
-::: {.cell-output .cell-output-stdout}
     GBM Regression Feature Importances:
     ride_hour: 77.99%
     low_temp: 6.20%
@@ -143,14 +108,8 @@ hourly_gbm.fit(X_hourly, y_hourly_log)
     precip: 2.98%
     year: 2.65%
     woy: 2.15%
-:::
-:::
 
-::: {.cell execution_count="9"}
-::: {.cell-output .cell-output-display execution_count="22"}
 ![](/img/gbs/cell-10-output-1.png)
-:::
-:::
 
 We can see this model has a hard time picking up on the different shapes
 between weekdays and weekends. It also has some sharp corners that maybe
@@ -165,7 +124,7 @@ the journey, not the final validation loss value, ok?
 
 Traditionally Gradient Boosting Models are fit by learning the direction
 to move each prediction individually at each iteration. By calculating the loss value for each observation, and then using the gradient of that observation's prediction as a
-"psuedo-label" we can learn a model to make predictions at that step. We
+"pseudo-label" we can learn a model to make predictions at that step. We
 can use the same procedure to fit a set of parameters and optimize them
 with the same algorithm. Then when we need to make a prediction we can
 use the predicted parameter values for that observation.
@@ -179,14 +138,14 @@ $$\hat{\theta}_{m-1} = \sum_{i \in m-1} f_{m-1}(x)$$
 The base learners are models learned to predict the gradients of these
 parameters against our loss function
 
-$$f_m(x) \sim \triangledown L(y, \hat{\theta}_{m-1})$$
+$$f_m(x) \sim \nabla L(y, \hat{\theta}_{m-1})$$
 
 In our example we need one extra step. If $b(\theta, x)$ is an
 individual model that generates predictions for a set of parameters
 $\theta$ and an observation $x$ then we calculate the gradients by how
 well the predictions from $b(\theta, x)$ predict our loss function $L$:
 
-$$\triangledown L(y_i, b(\theta_{m-1}, x_i))$$
+$$\nabla L(y_i, b(\theta_{m-1}, x_i))$$
 
 Then our decision tree will use $-g_{\theta}$ as the multi-target outputs
 and we can fit a decision tree to these targets. Since we have multiple
@@ -197,13 +156,13 @@ And our updates to our fitted parameters are
 
 $$\hat{\theta}_{m} = \hat{\theta}_{m-1} + \alpha * f_m(x)$$
 
-Lets ease into this by mimicking what the tree splitting algorithm does
+Let's ease into this by mimicking what the tree splitting algorithm does
 to find optimal splits but with our parameters; coefficients for a
 smoothing spline of the hours of the day.
 
 ### Optimal Spline Splits
 
-Lets walk through this without worrying about trees and gradients. The
+Let's walk through this without worrying about trees and gradients. The
 goal here is to pick up on which feature value results in the most
 unique daily ride shape. We'll loop through the unique values in a feature as the
 tree splitting algorithm will do. But for a first pass we will just
@@ -214,18 +173,8 @@ average, and then do the same for all the other days as one group. The
 day with the lowest combined *Sum of Squared Errors* does the best job
 of splitting the data into coherent days of the week.
 
-::: {.cell execution_count="11"}
-::: {.cell-output .cell-output-display execution_count="24"}
-```{=html}
-<div><style>
-.dataframe > thead > tr,
-.dataframe > tbody > tr {
-  text-align: right;
-  white-space: pre-wrap;
-}
-</style>
-<small>shape: (7, 2)</small>
-```
+```text
+shape: (7, 2)
   Day of Week   SSE
   ------------- -----------
   i64           f64
@@ -237,35 +186,17 @@ of splitting the data into coherent days of the week.
   6             2.0468e11
   7             2.0292e11
 
-```{=html}
-</div>
 ```
-:::
-:::
 
-::: {.cell execution_count="12"}
-::: {.cell-output .cell-output-display execution_count="25"}
 ![](/img/gbs/cell-13-output-1.png)
-:::
-:::
 
 So Sunday has the most unique shape by this measure. The other days
 would have had more total error across all observations if we had split
 on one of them instead. We can do the same thing by the Weeks of the
 Year.
 
-::: {.cell execution_count="13"}
-::: {.cell-output .cell-output-display execution_count="26"}
-```{=html}
-<div><style>
-.dataframe > thead > tr,
-.dataframe > tbody > tr {
-  text-align: right;
-  white-space: pre-wrap;
-}
-</style>
-<small>shape: (5, 2)</small>
-```
+```text
+shape: (5, 2)
   Week of Year   SSE
   -------------- -----------
   i64            f64
@@ -275,17 +206,9 @@ Year.
   12             1.7354e11
   16             1.7379e11
 
-```{=html}
-</div>
 ```
-:::
-:::
 
-::: {.cell execution_count="14"}
-::: {.cell-output .cell-output-display execution_count="27"}
 ![](/img/gbs/cell-15-output-1.png)
-:::
-:::
 
 I think this may be a data problem with some values missing or
 something. I don't know why early April would have the least amount of
@@ -314,8 +237,7 @@ fitting process
     data
 3.  Write a function to calculate the gradient of our loss function
 
-::: {.cell execution_count="15"}
-``` {.python .cell-code}
+```python
 N_KNOTS = 12
 x_day = hourly_df['ride_hour'].unique().to_numpy().reshape(-1, 1)
 spline_hour = SplineTransformer(n_knots=N_KNOTS, include_bias=True).fit(X=x_day)
@@ -327,7 +249,6 @@ for i in range(6):
     print(f'Hour {i*4}: {display_vec(bs_day[i*4, :])}')
 ```
 
-::: {.cell-output .cell-output-stdout}
     Example of Basis Activations for different hours
     Hour 0: ▂█▂▁▁▁▁▁▁▁▁▁▁▁
     Hour 4: ▁▁▃█▂▁▁▁▁▁▁▁▁▁
@@ -335,8 +256,6 @@ for i in range(6):
     Hour 12: ▁▁▁▁▁▁▄█▁▁▁▁▁▁
     Hour 16: ▁▁▁▁▁▁▁▁▅█▁▁▁▁
     Hour 20: ▁▁▁▁▁▁▁▁▁▁▆█▁▁
-:::
-:::
 
 Here is where things start to diverge from traditional models though. I
 do not want each tree $f_m(x)$ to produce a prediction of $\hat{y}_m$. I
@@ -348,15 +267,10 @@ that operates on a single observation. Jax will then calculate the
 partial derivatives automatically with `grad`. And we can scale this to an
 array with the `vmap` function.
 
-::: {.cell execution_count="19"}
-::: {.cell-output .cell-output-stdout}
     (34368, 14)
     (1432, 24, 14)
-:::
-:::
 
-::: {.cell execution_count="20"}
-``` {.python .cell-code}
+```python
 def loss_i(coefs, bs_array, y_array):
     """
     Calculate the scalar loss for the input, spline transformed data
@@ -373,13 +287,13 @@ def loss_i(coefs, bs_array, y_array):
     error = jnp.power(preds - y_array_, 2)
     penalty = jnp.sum(jnp.square(jnp.diff(coefs, 1)))
     # using mean instead of sum to keep the total loss numbers low...I think that's ok
-    error_array = jnp.mean(error) 
+    error_array = jnp.mean(error)
     return error_array + 0.01 * penalty
 
 # vectorize our loss function to work on arrays
 loss_array = vmap(loss_i)
 # Calculate the gradient of a single observation
-# grad only works on scalar output, so we have to vectorize them separately 
+# grad only works on scalar output, so we have to vectorize them separately
 grad_i = grad(loss_i)
 grad_array = vmap(grad_i)
 
@@ -389,14 +303,11 @@ print('Gradients for each spline coefficient for that day:')
 print(np.round(g, 2))
 ```
 
-::: {.cell-output .cell-output-stdout}
     Loss function value for one day: 1.28
     Gradients for each spline coefficient for that day:
     [ 0.01        0.11        0.29        0.28        0.         -0.14
      -0.13       -0.16       -0.19999999 -0.22999999 -0.17       -0.06
      -0.          0.        ]
-:::
-:::
 
 I've initialized some coefficients to predict a flat line, `coefs_init`.
 We can calculate our initial gradients and thus pseudo-labels to use in
@@ -407,17 +318,13 @@ the case, but when I created my coefs_init values originally I just used
 a 1d array for all values. That's why in the following code cell I
 repeat it to match the length of our data.
 
-::: {.cell execution_count="24"}
-``` {.python .cell-code}
+```python
 coefs_init_array = np.tile(coefs_init, (daily_df.shape[0], 1))
 labels_init = -grad_array(coefs_init_array, BS_daily, y_log)
 print(labels_init.shape)
 ```
 
-::: {.cell-output .cell-output-stdout}
     (1432, 14)
-:::
-:::
 
 ### Gradient Boosting Splines
 
@@ -433,18 +340,14 @@ We now have everything we need to update our spline coefficients:
 Let's fit one decision tree with our features to predict the gradients of
 the splines for each observation
 
-::: {.cell execution_count="25"}
-``` {.python .cell-code}
+```python
 from sklearn.tree import DecisionTreeRegressor
 
 x_features = daily_df[FEATURE_COLS].to_numpy()
 
 tree_init = DecisionTreeRegressor(max_depth=2).fit(x_features, labels_init)
 ```
-:::
 
-::: {.cell execution_count="26"}
-::: {.cell-output .cell-output-stdout}
     Tree splits:
     low_temp <= 57.5
       dow <= 5.5
@@ -452,11 +355,7 @@ tree_init = DecisionTreeRegressor(max_depth=2).fit(x_features, labels_init)
     else:
       dow <= 5.5
       else:
-:::
-:::
 
-::: {.cell execution_count="27"}
-::: {.cell-output .cell-output-stdout}
     First Tree Feature Importances:
     low_temp: 64.93%
     dow: 35.07%
@@ -464,17 +363,11 @@ tree_init = DecisionTreeRegressor(max_depth=2).fit(x_features, labels_init)
     year: 0.00%
     high_temp: 0.00%
     precip: 0.00%
-:::
-:::
 
 We can see how the different predictions look for this leaf nodes of
 this simple tree:
 
-::: {.cell execution_count="30"}
-::: {.cell-output .cell-output-display execution_count="39"}
 ![](/img/gbs/cell-31-output-1.png)
-:::
-:::
 
 What I love is we can immediately see the different shapes in the weekends
 and weekdays. Our classic GBM had to learn the trend at each hour of the
@@ -494,8 +387,7 @@ basically created a supervised clustering algorithm.
 We now have everything we need to fit our Gradient Boosting models to
 try and improve our predictions.
 
-::: {.cell execution_count="32"}
-``` {.python .cell-code}
+```python
 def fit_tree_and_update(
         coefs,
         bs_array=BS_daily,
@@ -534,11 +426,8 @@ print(f'Initial loss: {loss_init}')
 print(f'Final loss: {loss_fit}')
 ```
 
-::: {.cell-output .cell-output-stdout}
     Initial loss: 1.5850720405578613
     Final loss: 0.2547142207622528
-:::
-:::
 
 So the model (`spline_trees`) predicts a **coefficient vector** for each
 observation. To get predictions for each hour at each observation (an
@@ -547,31 +436,23 @@ coefficient vector against the Spline Basis we created for the 24 hour
 period initially. `predict_array` is a function I wrote to generate the
 *actual* hourly predictions based off a customized coefficient vector.
 
-::: {.cell execution_count="33"}
-::: {.cell-output .cell-output-stdout}
     [6.8599997 6.47      6.1099997 5.95      6.12      6.67      7.3999996
      8.0199995 8.42      8.57      8.559999  8.55      8.599999  8.69
      8.79      8.9       8.99      9.01      8.92      8.73      8.48
      8.21      7.98      7.8199997]
     [7.29 6.66 6.08 5.59 5.62 6.67 7.82 8.59 8.9  8.67 8.48 8.55 8.7  8.81
      8.95 9.05 9.15 9.3  9.17 8.83 8.38 8.04 7.9  7.81]
-:::
-:::
 
-Lets compare our fitted Gradient Boosted Spline to our initial GBM. The
+Let's compare our fitted Gradient Boosted Spline to our initial GBM. The
 model is still undershooting the peaks and misses something about the
 January 1st day (I should probably add a `Is_Holiday` feature). But we
-get smooth curves! From Gradient Boosting! Its amazing that this
+get smooth curves! From Gradient Boosting! It's amazing that this
 approach can be so accomplished so easily with code by leveraging open
 source tools like Jax and Scikit-Learn. All you need is a loss function
 and a way to express individual predictions from a set of parameters and
 you can fit any model this way.
 
-::: {.cell execution_count="36"}
-::: {.cell-output .cell-output-display execution_count="45"}
 ![](/img/gbs/cell-37-output-1.png)
-:::
-:::
 
 I'm sure there are tons of valid inference questions you could ask of
 this approach; I don't have those answers. But I think that will be it
