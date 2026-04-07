@@ -2,7 +2,6 @@
 layout: post
 title: Gradient Boosting Parameters
 math: true
-bigimg: /img/gbs/tree_spline.png
 share-img: /img/gbs/tree_spline.png
 show_image: true
 ---
@@ -13,6 +12,9 @@ models in the same way traditional GBMs predict 1-dimensional targets.
 This allows us to get the benefits of Gradient Boosting (large feature
 sets, high dimensional interactions, modeling at scale) to fit things
 like smoothing splines, survival analysis, and probabilistic models.
+
+![](/img/gbs/tree_spline.png)
+
 It's not a [modeling silver
 bullet](https://multithreaded.stitchfix.com/blog/2015/07/30/gam/), but I
 think this approach can be a useful tool to add to your modeling
@@ -43,8 +45,6 @@ but I ended up trying something I've always had an idea for first; can
 we use a GBM to fit distributions, not just make individual predictions?
 To test this I am going to walk through using Gradient Boosting to
 learn the coefficients for a spline function.
-
-![](/img/gbs/tree_spline.png)
 
 
 ### The Data
