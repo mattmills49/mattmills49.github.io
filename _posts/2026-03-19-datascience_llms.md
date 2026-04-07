@@ -31,3 +31,17 @@ That’s all I’ve got; make the LLM write tests that check the underlying data
 *Humanity Oath: I solemnly swear that I did not use AI to write the words in this piece.*
 
 
+As a Data Scientist I've been thinking about how we can generate reliable Statistical Inference while allowing LLMs to actually write the code for us. I think what I've settled on is that you need to understand that Data Science is a multiplicative process, not additive. 
+
+Software Development (building apps and GUIs) is more linear; individual parts
+can look "off" or not work exactly right but your app can still work; it'll be usable. 
+
+In contrast in order for your Model to be valid all of the underlying data
+manipulation has to be valid. Statistics has many thresholds where you get wrong
+results and then you cross over into right. Software development has more room in between useless and useful. 
+
+What can we do about it? I think you should use the LLMs to test your data, not your code. Print statements aren't enough, you need to break your pipeline if your data is off. 
+
+Maybe this isn't revolutionary, but thinking about it this way has helped me
+write more robust code at my job. You can read more about my thought process in my blog post: https://statmills.com/2025-05-03-datascience_llms/
+
